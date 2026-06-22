@@ -4,6 +4,7 @@ import '../../core/constants.dart';
 import '../../game/skins.dart';
 import '../../state/app_state.dart';
 import '../../widgets/batik.dart';
+import '../../widgets/soft_card.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
