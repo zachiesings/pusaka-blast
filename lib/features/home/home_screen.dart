@@ -29,8 +29,63 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<AppState>().startHomeMusic();
+      if (!mounted) return;
+      context.read<AppState>().startHomeMusic();
+      _maybeShowDaily();
     });
+  }
+
+  void _maybeShowDaily() {
+    final app = context.read<AppState>();
+    if (!app.dailyClaimable) return;
+    final (coins, streak) = app.claimDaily();
+    if (coins <= 0) return;
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+                colors: [Palette.panel, Palette.bg1],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Palette.gold.withOpacity(0.45), width: 1.5),
+            boxShadow: Palette.glow(Palette.gold, blur: 40, a: 0.4),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.card_giftcard_rounded, color: Palette.gold, size: 56),
+              const SizedBox(height: 10),
+              const GoldTitle('Hadiah Harian', size: 24),
+              const SizedBox(height: 8),
+              Text('Hari ke-$streak beruntun 🔥',
+                  style: const TextStyle(color: Palette.cream, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 14),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.monetization_on, color: Palette.gold, size: 30),
+                const SizedBox(width: 8),
+                Text('+$coins',
+                    style: const TextStyle(
+                        color: Palette.gold, fontSize: 34, fontWeight: FontWeight.w900)),
+              ]),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: GradientButton(
+                    label: 'Ambil!',
+                    height: 52,
+                    onTap: () => Navigator.of(context).pop()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

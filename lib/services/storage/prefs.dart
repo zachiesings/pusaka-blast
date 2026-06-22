@@ -40,4 +40,9 @@ class Prefs {
   Future<void> setShuffles(int v) => _p.setInt(K.kShuffles, v);
   int get bombs => _p.getInt(K.kBombs) ?? 0;
   Future<void> setBombs(int v) => _p.setInt(K.kBombs, v);
+
+  int get lastClaimDay => _p.getInt(K.kLastClaim) ?? 0;
+  Future<void> setLastClaimDay(int v) => _p.setInt(K.kLastClaim, v);
+  int get streak => _p.getInt(K.kStreak) ?? 0;
+  Future<void> setStreak(int v) => _p.setInt(K.kStreak, v);
 }

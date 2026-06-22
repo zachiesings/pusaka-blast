@@ -83,6 +83,22 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  // ----- Daily reward -----
+  int get _today => DateTime.now().millisecondsSinceEpoch ~/ 86400000;
+  bool get dailyClaimable => _prefs.lastClaimDay != _today;
+  int get dailyStreak => _prefs.streak;
+
+  /// Claim today's reward. Returns (coins, streak), or (0,0) if already claimed.
+  (int, int) claimDaily() {
+    if (!dailyClaimable) return (0, 0);
+    final streak = _prefs.lastClaimDay == _today - 1 ? _prefs.streak + 1 : 1;
+    final reward = 20 + (streak - 1).clamp(0, 6) * 10;
+    _prefs.setLastClaimDay(_today);
+    _prefs.setStreak(streak);
+    addCoins(reward);
+    return (reward, streak);
+  }
+
   bool consumeHammer() {
     if (_hammers <= 0) return false;
     _hammers--;
