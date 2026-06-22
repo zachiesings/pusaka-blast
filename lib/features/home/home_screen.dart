@@ -10,12 +10,43 @@ import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
 import '../shop/shop_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
-  void _play(BuildContext context) {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<AppState>().startHomeMusic();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     final app = context.read<AppState>();
-    Navigator.of(context).push(
+    if (state == AppLifecycleState.resumed) {
+      app.startHomeMusic();
+    } else if (state == AppLifecycleState.paused) {
+      app.stopHomeMusic();
+    }
+  }
+
+  Future<void> _play(BuildContext context) async {
+    final app = context.read<AppState>();
+    app.stopHomeMusic();
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider<GameController>(
           create: (_) => GameController(app)..newGame(),
@@ -23,6 +54,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+    app.startHomeMusic();
   }
 
   @override
@@ -35,7 +67,15 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                const Spacer(flex: 2),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => app.setMusic(!app.music),
+                    icon: Icon(app.music ? Icons.music_note : Icons.music_off,
+                        color: app.music ? Palette.gold : Palette.goldSoft),
+                  ),
+                ),
+                const Spacer(),
                 // Logo mark
                 Container(
                   width: 110,

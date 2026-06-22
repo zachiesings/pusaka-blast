@@ -27,6 +27,7 @@ class K {
   static const String kHighScore = 'pb_high_score';
   static const String kCoins     = 'pb_coins';
   static const String kSound     = 'pb_sound';
+  static const String kMusic     = 'pb_music';
   static const String kHaptics   = 'pb_haptics';
   static const String kFirstRun  = 'pb_first_run';
   static const String kUnlockedSkins = 'pb_unlocked_skins';

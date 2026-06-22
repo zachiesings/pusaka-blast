@@ -16,6 +16,7 @@ class AppState extends ChangeNotifier {
   int _coins;
   bool _sound;
   bool _haptics;
+  bool _music;
   late Set<String> _unlockedSkins;
   late String _selectedSkin;
   int _overCount = 0; // game-overs, for interstitial cadence
@@ -24,12 +25,26 @@ class AppState extends ChangeNotifier {
       : _highScore = _prefs.highScore,
         _coins = _prefs.coins,
         _sound = _prefs.sound,
+        _music = _prefs.music,
         _haptics = _prefs.haptics {
     audio.enabled = _sound;
+    audio.musicEnabled = _music;
     _unlockedSkins = _prefs.unlockedSkins.toSet()..add('klasik');
     _selectedSkin = _prefs.selectedSkin;
     CoreColors.active = SkinCatalog.byId(_selectedSkin).colors;
   }
+
+  bool get music => _music;
+  void setMusic(bool v) {
+    _music = v;
+    audio.setMusicEnabled(v);
+    if (v) audio.startBgm();
+    _prefs.setMusic(v);
+    notifyListeners();
+  }
+
+  void startHomeMusic() => audio.startBgm();
+  void stopHomeMusic() => audio.stopBgm();
 
   // ----- Batik skins -----
   String get selectedSkin => _selectedSkin;

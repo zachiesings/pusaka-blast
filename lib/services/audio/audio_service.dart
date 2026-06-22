@@ -18,11 +18,38 @@ class AudioService {
   int _next = 0;
   bool enabled = true;
 
+  final AudioPlayer _bgm = AudioPlayer();
+  bool musicEnabled = true;
+  bool _bgmPlaying = false;
+
   AudioService() : _pool = List.generate(4, (_) => AudioPlayer()) {
     for (final p in _pool) {
       p.setReleaseMode(ReleaseMode.stop);
       p.setPlayerMode(PlayerMode.lowLatency);
     }
+    _bgm.setReleaseMode(ReleaseMode.loop);
+  }
+
+  Future<void> startBgm() async {
+    if (!musicEnabled || _bgmPlaying) return;
+    _bgmPlaying = true;
+    try {
+      await _bgm.play(AssetSource('audio/bgm_home.wav'), volume: 0.55);
+    } catch (_) {
+      _bgmPlaying = false;
+    }
+  }
+
+  Future<void> stopBgm() async {
+    _bgmPlaying = false;
+    try {
+      await _bgm.stop();
+    } catch (_) {}
+  }
+
+  void setMusicEnabled(bool v) {
+    musicEnabled = v;
+    if (!v) stopBgm();
   }
 
   Future<void> play(Sfx s) async {
@@ -41,5 +68,6 @@ class AudioService {
     for (final p in _pool) {
       p.dispose();
     }
+    _bgm.dispose();
   }
 }
