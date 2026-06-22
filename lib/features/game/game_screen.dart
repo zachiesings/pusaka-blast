@@ -36,6 +36,9 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   int _fxLines = 0;
   int _fxCombo = 0;
 
+  bool _howToChecked = false;
+  bool _showHowTo = false;
+
   @override
   void initState() {
     super.initState();
@@ -123,6 +126,10 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     final gc = context.watch<GameController>();
     final app = context.watch<AppState>();
     _syncClearFx(gc);
+    if (!_howToChecked) {
+      _howToChecked = true;
+      _showHowTo = app.firstRun;
+    }
 
     return Scaffold(
       body: BatikBackground(
@@ -146,6 +153,11 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   onRestart: () => gc.newGame(),
                   onHome: () => Navigator.of(context).maybePop(),
                 ),
+              if (_showHowTo)
+                _HowToOverlay(onClose: () {
+                  setState(() => _showHowTo = false);
+                  context.read<AppState>().markOnboarded();
+                }),
             ],
           ),
         ),
@@ -228,6 +240,11 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
           final piece = gc.tray[i];
           if (piece == null) {
             return SizedBox(width: cell * 3, height: cell * 3);
+          }
+          // Grey out (and disable dragging) pieces that fit nowhere — a clear
+          // hint that the board is getting tight / game over is near.
+          if (!gc.engine.hasAnyPlacement(piece)) {
+            return Opacity(opacity: 0.28, child: PieceWidget(piece: piece, cell: cell));
           }
           final feedbackCell = _boardCell;
           final feedbackW = piece.width * feedbackCell;
@@ -318,6 +335,53 @@ class _Pill extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
       ]),
+    );
+  }
+}
+
+class _HowToOverlay extends StatelessWidget {
+  final VoidCallback onClose;
+  const _HowToOverlay({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget step(IconData icon, String text) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(children: [
+            Icon(icon, color: Palette.gold),
+            const SizedBox(width: 12),
+            Expanded(child: Text(text, style: const TextStyle(color: Palette.cream, height: 1.3))),
+          ]),
+        );
+    return Container(
+      color: Colors.black.withOpacity(0.78),
+      alignment: Alignment.center,
+      child: Container(
+        margin: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Palette.bg1,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Palette.gold.withOpacity(0.4), width: 1.5),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Cara Bermain',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Palette.cream)),
+            const SizedBox(height: 12),
+            step(Icons.touch_app, 'Seret balok dari bawah ke papan 8×8.'),
+            step(Icons.view_week, 'Penuhi satu baris atau kolom untuk membersihkannya.'),
+            step(Icons.bolt, 'Bersihkan beberapa garis berturut-turut untuk COMBO & skor besar.'),
+            step(Icons.warning_amber, 'Balok yang tak muat di mana pun akan meredup — hati-hati!'),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(onPressed: onClose, child: const Text('Mengerti, Main!')),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
