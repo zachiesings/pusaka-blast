@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../services/ads/ads_service.dart';
+import '../../services/audio/audio_service.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../game/game_mode.dart';
@@ -10,6 +11,7 @@ import '../../game/models/cell.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/mascot.dart';
 import 'widgets/board_view.dart';
+import 'widgets/game_backdrop.dart';
 import 'widgets/clear_fx.dart';
 import 'widgets/place_fx.dart';
 import 'widgets/piece_widget.dart';
@@ -50,6 +52,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   bool _howToChecked = false;
   bool _showHowTo = false;
 
+  AppState? _app;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +68,17 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_app == null) {
+      _app = context.read<AppState>();
+      _app!.startGameMusic(); // switch to the driving in-game track
+    }
+  }
+
+  @override
   void dispose() {
+    _app?.startHomeMusic(); // restore the home gendhing on the way out
     _fx.dispose();
     _placeFx.dispose();
     super.dispose();
@@ -98,6 +112,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   }
 
   void _onDragStarted(int index) {
+    _app?.playSfx(Sfx.move); // soft wood "tuk" on lift
     setState(() {
       _dragIndex = index;
       _ghostValid = false;
@@ -164,8 +179,10 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     }
 
     return Scaffold(
-      body: BatikBackground(
-        child: SafeArea(
+      body: Stack(
+        children: [
+          const Positioned.fill(child: GameBackdrop()),
+          SafeArea(
           child: Stack(
             children: [
               Column(
@@ -289,6 +306,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                 }),
             ],
           ),
+        ),
+          ],
         ),
       ),
     );

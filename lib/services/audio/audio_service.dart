@@ -1,6 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 
-enum Sfx { place, clear, combo, gameover, tap, gong }
+enum Sfx { place, clear, combo, gameover, tap, gong, move }
 
 /// Plays the original synthesized SFX. A small round-robin pool of players lets
 /// rapid sounds overlap without cutting each other off. All playback is gated by
@@ -13,6 +13,7 @@ class AudioService {
     Sfx.gameover: 'audio/gameover.wav',
     Sfx.tap: 'audio/tap.wav',
     Sfx.gong: 'audio/gong.wav',
+    Sfx.move: 'audio/move.wav',
   };
 
   final List<AudioPlayer> _pool;
@@ -21,7 +22,7 @@ class AudioService {
 
   final AudioPlayer _bgm = AudioPlayer();
   bool musicEnabled = true;
-  bool _bgmPlaying = false;
+  String _track = ''; // currently-playing bgm asset ('' = none)
 
   AudioService() : _pool = List.generate(4, (_) => AudioPlayer()) {
     for (final p in _pool) {
@@ -31,18 +32,26 @@ class AudioService {
     _bgm.setReleaseMode(ReleaseMode.loop);
   }
 
-  Future<void> startBgm() async {
-    if (!musicEnabled || _bgmPlaying) return;
-    _bgmPlaying = true;
+  /// Home-screen regal gendhing.
+  Future<void> startBgm() => _playTrack('audio/bgm_home.wav', 0.5);
+
+  /// Driving in-game gamelan groove (distinct track).
+  Future<void> startGameBgm() => _playTrack('audio/bgm_game.wav', 0.42);
+
+  Future<void> _playTrack(String asset, double vol) async {
+    if (!musicEnabled) return;
+    if (_track == asset) return; // already on this track
+    _track = asset;
     try {
-      await _bgm.play(AssetSource('audio/bgm_home.wav'), volume: 0.55);
+      await _bgm.stop();
+      await _bgm.play(AssetSource(asset), volume: vol);
     } catch (_) {
-      _bgmPlaying = false;
+      _track = '';
     }
   }
 
   Future<void> stopBgm() async {
-    _bgmPlaying = false;
+    _track = '';
     try {
       await _bgm.stop();
     } catch (_) {}

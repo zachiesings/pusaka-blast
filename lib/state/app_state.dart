@@ -45,6 +45,7 @@ class AppState extends ChangeNotifier {
   }
 
   void startHomeMusic() => audio.startBgm();
+  void startGameMusic() => audio.startGameBgm();
   void stopHomeMusic() => audio.stopBgm();
 
   // ----- Power-ups -----
