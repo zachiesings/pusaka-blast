@@ -47,6 +47,20 @@ class BlockEngine {
     return true;
   }
 
+  /// Power-up: clear a 3x3 area centred on (col,row) (bomb). Returns # cleared.
+  int clearArea(int col, int row) {
+    var n = 0;
+    for (var r = row - 1; r <= row + 1; r++) {
+      for (var c = col - 1; c <= col + 1; c++) {
+        if (c >= 0 && c < size && r >= 0 && r < size && _grid[r][c] != null) {
+          _grid[r][c] = null;
+          n++;
+        }
+      }
+    }
+    return n;
+  }
+
   /// Snapshot for persistence/restore (row-major color ints, -1 empty).
   List<int> serialize() {
     final out = <int>[];

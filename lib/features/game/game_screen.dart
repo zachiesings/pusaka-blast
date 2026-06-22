@@ -167,7 +167,9 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   _PowerupBar(
                     hammers: app.hammers,
                     shuffles: app.shuffles,
+                    bombs: app.bombs,
                     hammerArmed: gc.hammerArmed,
+                    bombArmed: gc.bombArmed,
                     onHammer: () {
                       if (app.hammers > 0) {
                         gc.armHammer();
@@ -180,6 +182,13 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                         gc.useShuffle();
                       } else {
                         app.buyPowerup('shuffle');
+                      }
+                    },
+                    onBomb: () {
+                      if (app.bombs > 0) {
+                        gc.armBomb();
+                      } else {
+                        app.buyPowerup('bomb');
                       }
                     },
                   ),
@@ -266,7 +275,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     repaintTick: _tick + gc.score,
                   ),
                 ),
-                if (gc.hammerArmed)
+                if (gc.hammerArmed || gc.bombArmed)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapUp: (d) {
@@ -275,7 +284,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                       final local = box.globalToLocal(d.globalPosition);
                       final col = (local.dx / _boardCell).floor();
                       final row = (local.dy / _boardCell).floor();
-                      gc.useHammerAt(col, row);
+                      gc.useToolAt(col, row);
                       setState(() => _tick++);
                     },
                   ),
@@ -451,15 +460,18 @@ class _Pill extends StatelessWidget {
 }
 
 class _PowerupBar extends StatelessWidget {
-  final int hammers, shuffles;
-  final bool hammerArmed;
-  final VoidCallback onHammer, onShuffle;
+  final int hammers, shuffles, bombs;
+  final bool hammerArmed, bombArmed;
+  final VoidCallback onHammer, onShuffle, onBomb;
   const _PowerupBar({
     required this.hammers,
     required this.shuffles,
+    required this.bombs,
     required this.hammerArmed,
+    required this.bombArmed,
     required this.onHammer,
     required this.onShuffle,
+    required this.onBomb,
   });
 
   @override
@@ -468,7 +480,7 @@ class _PowerupBar extends StatelessWidget {
       return GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
             color: active ? Palette.gold.withOpacity(0.22) : Palette.panel.withOpacity(0.6),
             borderRadius: BorderRadius.circular(16),
@@ -501,11 +513,12 @@ class _PowerupBar extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           btn(Icons.gavel_rounded, 'Palu', hammers, hammerArmed, onHammer),
+          btn(Icons.dangerous_rounded, 'Bom', bombs, bombArmed, onBomb),
           btn(Icons.shuffle_rounded, 'Acak', shuffles, false, onShuffle),
         ],
       ),

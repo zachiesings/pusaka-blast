@@ -30,6 +30,7 @@ class GameController extends ChangeNotifier {
 
   int timeLeft = 0;     // seconds remaining (time-attack)
   bool hammerArmed = false; // next board tap clears a cell
+  bool bombArmed = false;   // next board tap clears a 3x3 area
   Timer? _timer;
 
   List<Cell> lastClearedCells = const [];
@@ -75,17 +76,35 @@ class GameController extends ChangeNotifier {
   void armHammer() {
     if (isGameOver || app.hammers <= 0) return;
     hammerArmed = !hammerArmed;
+    bombArmed = false;
     notifyListeners();
   }
 
-  void useHammerAt(int col, int row) {
-    if (!hammerArmed) return;
-    if (engine.clearCell(col, row) && app.consumeHammer()) {
-      app.playSfx(Sfx.clear);
-      _haptic(HapticFeedbackLevel.medium);
-    }
+  void armBomb() {
+    if (isGameOver || app.bombs <= 0) return;
+    bombArmed = !bombArmed;
     hammerArmed = false;
-    isGameOver = false; // a cleared cell may re-open moves
+    notifyListeners();
+  }
+
+  void useToolAt(int col, int row) {
+    if (hammerArmed) {
+      if (engine.clearCell(col, row) && app.consumeHammer()) {
+        app.playSfx(Sfx.clear);
+        _haptic(HapticFeedbackLevel.medium);
+      }
+      hammerArmed = false;
+    } else if (bombArmed) {
+      if (app.consumeBomb()) {
+        engine.clearArea(col, row);
+        app.playSfx(Sfx.gong);
+        _haptic(HapticFeedbackLevel.medium);
+      }
+      bombArmed = false;
+    } else {
+      return;
+    }
+    isGameOver = false; // clearing may re-open moves
     notifyListeners();
   }
 

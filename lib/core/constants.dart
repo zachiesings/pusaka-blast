@@ -34,6 +34,7 @@ class K {
   static const String kSelectedSkin  = 'pb_selected_skin';
   static const String kHammers   = 'pb_hammers';
   static const String kShuffles  = 'pb_shuffles';
+  static const String kBombs     = 'pb_bombs';
   static const int powerupCost   = 40; // coins per power-up
 }
 

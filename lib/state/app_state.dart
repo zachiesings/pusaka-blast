@@ -48,24 +48,37 @@ class AppState extends ChangeNotifier {
   void stopHomeMusic() => audio.stopBgm();
 
   // ----- Power-ups -----
-  int _hammers = 0, _shuffles = 0;
+  int _hammers = 0, _shuffles = 0, _bombs = 0;
   int get hammers => _hammers;
   int get shuffles => _shuffles;
+  int get bombs => _bombs;
   void _loadPowerups() {
     _hammers = _prefs.hammers;
     _shuffles = _prefs.shuffles;
+    _bombs = _prefs.bombs;
   }
 
-  /// Buy a power-up (kind: 'hammer'|'shuffle') with coins. Returns false if poor.
+  /// Buy a power-up (kind: 'hammer'|'shuffle'|'bomb') with coins.
   bool buyPowerup(String kind) {
     if (!spendCoins(40)) return false;
     if (kind == 'hammer') {
       _hammers++;
       _prefs.setHammers(_hammers);
+    } else if (kind == 'bomb') {
+      _bombs++;
+      _prefs.setBombs(_bombs);
     } else {
       _shuffles++;
       _prefs.setShuffles(_shuffles);
     }
+    notifyListeners();
+    return true;
+  }
+
+  bool consumeBomb() {
+    if (_bombs <= 0) return false;
+    _bombs--;
+    _prefs.setBombs(_bombs);
     notifyListeners();
     return true;
   }

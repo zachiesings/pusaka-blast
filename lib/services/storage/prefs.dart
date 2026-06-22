@@ -38,4 +38,6 @@ class Prefs {
   Future<void> setHammers(int v) => _p.setInt(K.kHammers, v);
   int get shuffles => _p.getInt(K.kShuffles) ?? 1;
   Future<void> setShuffles(int v) => _p.setInt(K.kShuffles, v);
+  int get bombs => _p.getInt(K.kBombs) ?? 0;
+  Future<void> setBombs(int v) => _p.setInt(K.kBombs, v);
 }
