@@ -41,6 +41,29 @@ class BlockEngine {
   Color? cellColor(int col, int row) => _grid[row][col];
   bool isFilled(int col, int row) => _grid[row][col] != null;
 
+  /// Cells that WOULD be cleared if [piece] were placed at (col,row) — for a
+  /// live drag preview. Does not mutate the board; empty if placement invalid.
+  List<Cell> previewClears(BlockPiece piece, int col, int row) {
+    if (!canPlace(piece, col, row)) return const [];
+    final hypothetical = <int>{};
+    for (final c in piece.cells) {
+      hypothetical.add((row + c.row) * size + (col + c.col));
+    }
+    bool filled(int c, int r) => _grid[r][c] != null || hypothetical.contains(r * size + c);
+    final cells = <Cell>[];
+    for (var r = 0; r < size; r++) {
+      if (List.generate(size, (c) => filled(c, r)).every((x) => x)) {
+        for (var c = 0; c < size; c++) cells.add(Cell(c, r));
+      }
+    }
+    for (var c = 0; c < size; c++) {
+      if (List.generate(size, (r) => filled(c, r)).every((x) => x)) {
+        for (var r = 0; r < size; r++) cells.add(Cell(c, r));
+      }
+    }
+    return cells;
+  }
+
   /// Power-up: clear a single cell (hammer). Returns true if a cell was cleared.
   bool clearCell(int col, int row) {
     if (col < 0 || col >= size || row < 0 || row >= size) return false;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../game/engine/block_engine.dart';
 import '../../../game/models/block_piece.dart';
+import '../../../game/models/cell.dart';
 import '../../../widgets/batik.dart';
 
 /// Draws the 8x8 board: empty cells, placed tiles, and a live "ghost" preview of
@@ -12,6 +13,7 @@ class BoardPainter extends CustomPainter {
   final int ghostCol;
   final int ghostRow;
   final bool ghostValid;
+  final List<Cell> previewClears; // cells that would clear at the ghost spot
   final int repaintTick; // bumped to force repaint on state change
 
   BoardPainter({
@@ -20,6 +22,7 @@ class BoardPainter extends CustomPainter {
     required this.ghostCol,
     required this.ghostRow,
     required this.ghostValid,
+    this.previewClears = const [],
     required this.repaintTick,
   });
 
@@ -57,6 +60,23 @@ class BoardPainter extends CustomPainter {
       }
     }
 
+    // Would-be-clear preview: glow the rows/cols that this drop would clear.
+    if (previewClears.isNotEmpty) {
+      final glow = Paint()
+        ..color = Palette.jade.withOpacity(0.45)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      final outline = Paint()
+        ..color = Palette.jade
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.06;
+      for (final pc in previewClears) {
+        final rect = Rect.fromLTWH(pc.col * cell, pc.row * cell, cell, cell).deflate(cell * 0.06);
+        final rr = RRect.fromRectAndRadius(rect, Radius.circular(cell * 0.16));
+        canvas.drawRRect(rr, glow);
+        canvas.drawRRect(rr, outline);
+      }
+    }
+
     // Ghost preview
     final gp = ghostPiece;
     if (gp != null) {
@@ -86,5 +106,6 @@ class BoardPainter extends CustomPainter {
       old.ghostPiece != ghostPiece ||
       old.ghostCol != ghostCol ||
       old.ghostRow != ghostRow ||
-      old.ghostValid != ghostValid;
+      old.ghostValid != ghostValid ||
+      old.previewClears != previewClears;
 }

@@ -28,6 +28,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   int? _dragIndex;
   int _ghostCol = 0, _ghostRow = 0;
   bool _ghostValid = false;
+  List<Cell> _previewCells = const []; // lines that would clear at the ghost spot
   int _tick = 0;
 
   static const double _liftCells = 1.3; // raise the piece above the finger
@@ -123,6 +124,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
         _ghostCol = col;
         _ghostRow = row;
         _ghostValid = valid;
+        _previewCells = valid ? gc.engine.previewClears(piece, col, row) : const [];
       });
     }
   }
@@ -133,6 +135,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     }
     setState(() {
       _dragIndex = null;
+      _previewCells = const [];
       _tick++;
     });
   }
@@ -312,6 +315,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     ghostCol: _ghostCol,
                     ghostRow: _ghostRow,
                     ghostValid: _ghostValid,
+                    previewClears: _previewCells,
                     repaintTick: _tick + gc.score,
                   ),
                 ),
