@@ -29,9 +29,47 @@ class AboutScreen extends StatelessWidget {
               SoftCard(
                 glow: Palette.gold,
                 child: Text(
-                    'Teka-teki balok 8×8 dengan motif batik Nusantara. Susun balok, '
-                    'bersihkan baris & kolom, kejar combo & skor tertinggi.',
-                    style: TextStyle(color: Palette.cream.withOpacity(0.75), height: 1.5)),
+                    'Tata balok berukir batik di lantai pendopo emas. Lengkapi baris & '
+                    'kolom untuk menyelesaikan motif, kumpulkan Berkah Keraton, dan kejar '
+                    'skor tertinggi — diiringi gamelan orisinal & latar yang hidup.',
+                    style: TextStyle(color: Palette.cream.withOpacity(0.78), height: 1.5)),
+              ),
+              const SizedBox(height: 14),
+              SoftCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: const [
+                      Icon(Icons.auto_awesome, color: Palette.gold, size: 20),
+                      SizedBox(width: 8),
+                      Text('Fitur',
+                          style: TextStyle(
+                              color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                    ]),
+                    const SizedBox(height: 8),
+                    for (final f in const [
+                      'Berkah Keraton — pembersihan beruntun skor ×2',
+                      'Power-up: Palu, Bom 3×3, Acak',
+                      'Mode Klasik & Time Attack',
+                      'Toko Batik, Hadiah Harian, Pencapaian',
+                      'Gamelan & efek suara orisinal, latar beranimasi',
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 3),
+                            child: Icon(Icons.check_circle, color: Palette.jade, size: 14),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(f,
+                                style: TextStyle(color: Palette.cream.withOpacity(0.7), height: 1.4)),
+                          ),
+                        ]),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 14),
               SoftCard(
