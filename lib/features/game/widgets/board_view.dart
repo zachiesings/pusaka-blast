@@ -31,12 +31,54 @@ class BoardPainter extends CustomPainter {
     final n = engine.size;
     final cell = size.width / n;
 
-    // Board backing panel
+    // Board backing panel — carved teak with a gradient + gold ornate frame
     final panel = RRect.fromRectAndRadius(
       Offset.zero & size,
       Radius.circular(cell * 0.25),
     );
-    canvas.drawRRect(panel, Paint()..color = Palette.panel);
+    canvas.drawRRect(panel.inflate(cell * 0.18).shift(Offset(0, cell * 0.1)),
+        Paint()..color = Colors.black.withOpacity(0.35));
+    canvas.drawRRect(
+      panel,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color.lerp(Palette.panel, Palette.gold, 0.06)!, Palette.panel],
+        ).createShader(Offset.zero & size),
+    );
+    // double gold frame
+    canvas.drawRRect(
+      panel.deflate(cell * 0.04),
+      Paint()
+        ..color = Palette.gold.withOpacity(0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.05,
+    );
+    canvas.drawRRect(
+      panel.deflate(cell * 0.13),
+      Paint()
+        ..color = Palette.gold.withOpacity(0.22)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.02,
+    );
+    // corner flourishes
+    final fl = Paint()
+      ..color = Palette.gold.withOpacity(0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = cell * 0.05
+      ..strokeCap = StrokeCap.round;
+    final m = cell * 0.32, len = cell * 0.5;
+    for (final cn in [
+      [Offset(m, m), const Offset(1, 0), const Offset(0, 1)],
+      [Offset(size.width - m, m), const Offset(-1, 0), const Offset(0, 1)],
+      [Offset(m, size.height - m), const Offset(1, 0), const Offset(0, -1)],
+      [Offset(size.width - m, size.height - m), const Offset(-1, 0), const Offset(0, -1)],
+    ]) {
+      final p = cn[0] as Offset, dx = cn[1] as Offset, dy = cn[2] as Offset;
+      canvas.drawLine(p, p + dx * len, fl);
+      canvas.drawLine(p, p + dy * len, fl);
+    }
 
     // Empty cells
     final empty = Paint()..color = Palette.gridCell;
