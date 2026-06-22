@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../core/constants.dart';
 import '../game/engine/block_engine.dart';
 import '../game/models/block_piece.dart';
+import '../game/models/cell.dart';
 import '../game/pieces.dart';
 import 'app_state.dart';
 
@@ -22,6 +23,11 @@ class GameController extends ChangeNotifier {
   int lastLines = 0;    // lines cleared on the last move
   bool isGameOver = false;
   bool isNewBest = false;
+
+  /// Cells removed by the most recent line clear + a monotonic counter the UI
+  /// watches to trigger the clear animation exactly once per event.
+  List<Cell> lastClearedCells = const [];
+  int clearEvent = 0;
 
   GameController(this.app);
 
@@ -65,6 +71,8 @@ class GameController extends ChangeNotifier {
 
     if (result.linesCleared > 0) {
       combo++;
+      lastClearedCells = result.clearedCells;
+      clearEvent++;
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
       _haptic(HapticFeedbackLevel.medium);
     } else {

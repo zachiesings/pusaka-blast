@@ -4,8 +4,10 @@ import '../../core/constants.dart';
 import '../../services/ads/ads_service.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
+import '../../game/models/cell.dart';
 import '../../widgets/batik.dart';
 import 'widgets/board_view.dart';
+import 'widgets/clear_fx.dart';
 import 'widgets/piece_widget.dart';
 
 class GameScreen extends StatefulWidget {
@@ -15,7 +17,7 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateMixin {
   final GlobalKey _boardKey = GlobalKey();
   double _boardCell = 40;
 
@@ -25,6 +27,43 @@ class _GameScreenState extends State<GameScreen> {
   int _tick = 0;
 
   static const double _liftCells = 1.3; // raise the piece above the finger
+
+  // Line-clear flash + score-pop animation.
+  late final AnimationController _fx;
+  int _seenClearEvent = 0;
+  List<Cell> _fxCells = const [];
+  int _fxGained = 0;
+  int _fxLines = 0;
+  int _fxCombo = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fx = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fx.dispose();
+    super.dispose();
+  }
+
+  /// Trigger the clear animation once per new clear event from the controller.
+  void _syncClearFx(GameController gc) {
+    if (gc.clearEvent != _seenClearEvent) {
+      _seenClearEvent = gc.clearEvent;
+      _fxCells = gc.lastClearedCells;
+      _fxGained = gc.lastGained;
+      _fxLines = gc.lastLines;
+      _fxCombo = gc.combo;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fx.forward(from: 0);
+      });
+    }
+  }
 
   void _onDragStarted(int index) {
     setState(() {
@@ -83,6 +122,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final gc = context.watch<GameController>();
     final app = context.watch<AppState>();
+    _syncClearFx(gc);
 
     return Scaffold(
       body: BatikBackground(
@@ -124,15 +164,52 @@ class _GameScreenState extends State<GameScreen> {
             key: _boardKey,
             width: boardPx,
             height: boardPx,
-            child: CustomPaint(
-              painter: BoardPainter(
-                engine: gc.engine,
-                ghostPiece: _dragIndex != null ? gc.tray[_dragIndex!] : null,
-                ghostCol: _ghostCol,
-                ghostRow: _ghostRow,
-                ghostValid: _ghostValid,
-                repaintTick: _tick + gc.score,
-              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CustomPaint(
+                  painter: BoardPainter(
+                    engine: gc.engine,
+                    ghostPiece: _dragIndex != null ? gc.tray[_dragIndex!] : null,
+                    ghostCol: _ghostCol,
+                    ghostRow: _ghostRow,
+                    ghostValid: _ghostValid,
+                    repaintTick: _tick + gc.score,
+                  ),
+                ),
+                IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _fx,
+                    builder: (_, __) => CustomPaint(
+                      painter: ClearFxPainter(
+                        cells: _fxCells,
+                        gridSize: K.gridSize,
+                        t: _fx.value,
+                      ),
+                    ),
+                  ),
+                ),
+                IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _fx,
+                    builder: (_, __) {
+                      if (_fxCells.isEmpty || _fx.value >= 1) {
+                        return const SizedBox.shrink();
+                      }
+                      final t = _fx.value;
+                      return Center(
+                        child: Opacity(
+                          opacity: (1 - t).clamp(0.0, 1.0),
+                          child: Transform.translate(
+                            offset: Offset(0, -boardPx * 0.10 - t * 42),
+                            child: _ScorePop(gained: _fxGained, lines: _fxLines, combo: _fxCombo),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -241,6 +318,37 @@ class _Pill extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
       ]),
+    );
+  }
+}
+
+class _ScorePop extends StatelessWidget {
+  final int gained, lines, combo;
+  const _ScorePop({required this.gained, required this.lines, required this.combo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: Palette.ink.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text('+$gained',
+              style: const TextStyle(
+                  color: Palette.gold, fontSize: 30, fontWeight: FontWeight.w900)),
+        ),
+        if (combo > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text('COMBO x$combo',
+                style: const TextStyle(
+                    color: Palette.cream, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+          ),
+      ],
     );
   }
 }
