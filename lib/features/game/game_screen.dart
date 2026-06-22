@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
@@ -33,6 +34,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   // Line-clear flash + score-pop animation.
   late final AnimationController _fx;
   int _seenClearEvent = 0;
+  int _seenSpecial = 0;
+  bool _wasSpecial = false;
   List<Cell> _fxCells = const [];
   int _fxGained = 0;
   int _fxLines = 0;
@@ -64,6 +67,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       _fxGained = gc.lastGained;
       _fxLines = gc.lastLines;
       _fxCombo = gc.combo;
+      _wasSpecial = gc.specialEvent != _seenSpecial;
+      _seenSpecial = gc.specialEvent;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fx.forward(from: 0);
       });
@@ -147,7 +152,17 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     coins: app.coins,
                     timeLeft: gc.mode.timed ? gc.timeLeft : null,
                   ),
-                  Expanded(child: _buildBoard(gc)),
+                  Expanded(
+                    child: AnimatedBuilder(
+                      animation: _fx,
+                      builder: (_, child) {
+                        final amp = _fxLines >= 2 ? (1 - _fx.value) * (_wasSpecial ? 12 : 5) : 0.0;
+                        final dx = math.sin(_fx.value * math.pi * 8) * amp;
+                        return Transform.translate(offset: Offset(dx, 0), child: child);
+                      },
+                      child: _buildBoard(gc),
+                    ),
+                  ),
                   _buildTray(gc),
                   _PowerupBar(
                     hammers: app.hammers,
@@ -171,6 +186,38 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 10),
                 ],
               ),
+              if (_wasSpecial)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _fx,
+                      builder: (_, __) {
+                        if (_fx.value >= 1) return const SizedBox.shrink();
+                        final v = 1 - _fx.value;
+                        return Stack(
+                          children: [
+                            Positioned.fill(
+                                child: ColoredBox(color: Palette.gold.withOpacity(0.2 * v))),
+                            Center(
+                              child: Opacity(
+                                opacity: v,
+                                child: Transform.scale(
+                                  scale: 0.8 + (1 - v) * 0.5,
+                                  child: const Text('PUKULAN GAMELAN!',
+                                      style: TextStyle(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w900,
+                                          color: Palette.gold,
+                                          letterSpacing: 1)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
               if (gc.isGameOver)
                 _GameOverOverlay(
                   score: gc.score,

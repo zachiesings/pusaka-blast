@@ -1,6 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 
-enum Sfx { place, clear, combo, gameover, tap }
+enum Sfx { place, clear, combo, gameover, tap, gong }
 
 /// Plays the original synthesized SFX. A small round-robin pool of players lets
 /// rapid sounds overlap without cutting each other off. All playback is gated by
@@ -12,6 +12,7 @@ class AudioService {
     Sfx.combo: 'audio/combo.wav',
     Sfx.gameover: 'audio/gameover.wav',
     Sfx.tap: 'audio/tap.wav',
+    Sfx.gong: 'audio/gong.wav',
   };
 
   final List<AudioPlayer> _pool;

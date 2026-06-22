@@ -34,6 +34,7 @@ class GameController extends ChangeNotifier {
 
   List<Cell> lastClearedCells = const [];
   int clearEvent = 0;
+  int specialEvent = 0; // bumped on a big "Pukulan Gamelan" combo (screen flash + shake)
 
   GameController(this.app, {this.mode = BlastMode.klasik});
 
@@ -127,7 +128,13 @@ class GameController extends ChangeNotifier {
       lastClearedCells = result.clearedCells;
       clearEvent++;
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
-      app.playSfx(combo > 1 ? Sfx.combo : Sfx.clear);
+      if (combo >= 3 || result.linesCleared >= 3) {
+        specialEvent++;
+        app.playSfx(Sfx.gong); // Pukulan Gamelan!
+        _haptic(HapticFeedbackLevel.medium);
+      } else {
+        app.playSfx(combo > 1 ? Sfx.combo : Sfx.clear);
+      }
       _haptic(HapticFeedbackLevel.medium);
     } else {
       combo = 0;
