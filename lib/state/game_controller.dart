@@ -36,6 +36,8 @@ class GameController extends ChangeNotifier {
   List<Cell> lastClearedCells = const [];
   int clearEvent = 0;
   int specialEvent = 0; // bumped on a big "Pukulan Gamelan" combo (screen flash + shake)
+  List<Cell> lastFilledCells = const []; // cells the last piece occupied (pop-in FX)
+  int placeEvent = 0;
 
   GameController(this.app, {this.mode = BlastMode.klasik});
 
@@ -131,6 +133,8 @@ class GameController extends ChangeNotifier {
     final result = engine.place(piece, col, row, comboMultiplier: combo + 1);
     if (!result.placed) return false;
 
+    lastFilledCells = result.filledCells;
+    placeEvent++;
     score += result.gained;
     lastGained = result.gained;
     lastLines = result.linesCleared;

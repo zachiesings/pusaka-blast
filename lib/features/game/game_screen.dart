@@ -11,6 +11,7 @@ import '../../widgets/batik.dart';
 import '../../widgets/mascot.dart';
 import 'widgets/board_view.dart';
 import 'widgets/clear_fx.dart';
+import 'widgets/place_fx.dart';
 import 'widgets/piece_widget.dart';
 
 class GameScreen extends StatefulWidget {
@@ -33,6 +34,9 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
   // Line-clear flash + score-pop animation.
   late final AnimationController _fx;
+  late final AnimationController _placeFx; // piece pop-in
+  int _seenPlaceEvent = 0;
+  List<Cell> _placeCells = const [];
   int _seenClearEvent = 0;
   int _seenSpecial = 0;
   bool _wasSpecial = false;
@@ -51,12 +55,27 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(milliseconds: 520),
     );
+    _placeFx = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
   }
 
   @override
   void dispose() {
     _fx.dispose();
+    _placeFx.dispose();
     super.dispose();
+  }
+
+  void _syncPlaceFx(GameController gc) {
+    if (gc.placeEvent != _seenPlaceEvent) {
+      _seenPlaceEvent = gc.placeEvent;
+      _placeCells = gc.lastFilledCells;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _placeFx.forward(from: 0);
+      });
+    }
   }
 
   /// Trigger the clear animation once per new clear event from the controller.
@@ -133,6 +152,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     final gc = context.watch<GameController>();
     final app = context.watch<AppState>();
     _syncClearFx(gc);
+    _syncPlaceFx(gc);
     if (!_howToChecked) {
       _howToChecked = true;
       _showHowTo = app.firstRun;
@@ -288,6 +308,18 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                       setState(() => _tick++);
                     },
                   ),
+                IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _placeFx,
+                    builder: (_, __) => CustomPaint(
+                      painter: PlacePopPainter(
+                        cells: _placeCells,
+                        gridSize: K.gridSize,
+                        t: _placeFx.value,
+                      ),
+                    ),
+                  ),
+                ),
                 IgnorePointer(
                   child: AnimatedBuilder(
                     animation: _fx,
