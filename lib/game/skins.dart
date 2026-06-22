@@ -62,6 +62,36 @@ class SkinCatalog {
         Color(0xFF2F5E3A), Color(0xFF5C7A3A), Color(0xFF7A5A2E),
       ],
     ),
+    Skin(
+      id: 'megamendung',
+      name: 'Mega Mendung',
+      desc: 'Awan biru Cirebon yang berlapis.',
+      cost: 400,
+      colors: [
+        Color(0xFF1E5A8A), Color(0xFF2E7AB0), Color(0xFF14406A), Color(0xFF49A6D6),
+        Color(0xFF0E2E50), Color(0xFF3A8FC4), Color(0xFF6CC3E8),
+      ],
+    ),
+    Skin(
+      id: 'truntum',
+      name: 'Truntum',
+      desc: 'Taburan bintang emas di langit nila.',
+      cost: 500,
+      colors: [
+        Color(0xFFD9A636), Color(0xFFB8860B), Color(0xFFF2C75B), Color(0xFF5C4A8A),
+        Color(0xFF8A6E2E), Color(0xFFE0B84E), Color(0xFF3E3268),
+      ],
+    ),
+    Skin(
+      id: 'senja',
+      name: 'Senja Nusantara',
+      desc: 'Gradasi hangat matahari terbenam.',
+      cost: 650,
+      colors: [
+        Color(0xFFE8643C), Color(0xFFD23E5A), Color(0xFFF2913C), Color(0xFFB02E6A),
+        Color(0xFFC0492E), Color(0xFFF2B14A), Color(0xFF8A2E5A),
+      ],
+    ),
   ];
 
   static Skin byId(String id) =>
