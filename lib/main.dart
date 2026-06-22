@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' show MobileAds;
 import 'app/app.dart';
 import 'core/constants.dart';
 import 'services/ads/ads_service.dart';
