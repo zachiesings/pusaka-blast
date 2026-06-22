@@ -26,21 +26,39 @@ class BatikTile {
       RRect.fromRectAndRadius(Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.4), radius),
       Paint()..color = Colors.white.withOpacity(0.14 * opacity),
     );
-    final cx = r.center.dx, cy = r.center.dy, s = r.width * 0.24;
+    final cx = r.center.dx, cy = r.center.dy, s = r.width * 0.26;
     final motif = Paint()
-      ..color = Palette.cream.withOpacity(0.22 * opacity)
+      ..color = Palette.cream.withOpacity(0.24 * opacity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = r.width * 0.04;
-    canvas.drawPath(
-      Path()..moveTo(cx, cy - s)..lineTo(cx + s, cy)..lineTo(cx, cy + s)..lineTo(cx - s, cy)..close(),
-      motif,
-    );
+      ..strokeWidth = r.width * 0.035;
+    // carved kawung medallion: four petals around the centre
+    for (final a in [0, 1, 2, 3]) {
+      final ang = a * math.pi / 2 + math.pi / 4;
+      final oc = Offset(cx + math.cos(ang) * s * 0.6, cy + math.sin(ang) * s * 0.6);
+      canvas.drawOval(
+        Rect.fromCenter(center: oc, width: s * 0.8, height: s * 1.25),
+        motif,
+      );
+    }
+    canvas.drawCircle(Offset(cx, cy), s * 0.22,
+        Paint()..color = Palette.cream.withOpacity(0.3 * opacity));
+    // corner studs
+    final stud = Paint()..color = Palette.goldSoft.withOpacity(0.5 * opacity);
+    for (final off in [
+      Offset(r.left + r.width * 0.16, r.top + r.height * 0.16),
+      Offset(r.right - r.width * 0.16, r.top + r.height * 0.16),
+      Offset(r.left + r.width * 0.16, r.bottom - r.height * 0.16),
+      Offset(r.right - r.width * 0.16, r.bottom - r.height * 0.16),
+    ]) {
+      canvas.drawCircle(off, r.width * 0.035, stud);
+    }
+    // gold rim
     canvas.drawRRect(
       rr,
       Paint()
-        ..color = Palette.goldSoft.withOpacity(0.45 * opacity)
+        ..color = Palette.goldSoft.withOpacity(0.55 * opacity)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = rect.width * 0.025,
+        ..strokeWidth = rect.width * 0.03,
     );
   }
 }
