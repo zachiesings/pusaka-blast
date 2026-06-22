@@ -194,6 +194,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     best: app.highScore,
                     combo: gc.combo,
                     coins: app.coins,
+                    berkah: gc.berkahActive,
                     timeLeft: gc.mode.timed ? gc.timeLeft : null,
                   ),
                   // Berkah Keraton meter
@@ -514,12 +515,14 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
 class _Hud extends StatelessWidget {
   final int score, best, combo, coins;
+  final bool berkah;
   final int? timeLeft;
   const _Hud(
       {required this.score,
       required this.best,
       required this.combo,
       required this.coins,
+      this.berkah = false,
       this.timeLeft});
 
   @override
@@ -534,7 +537,7 @@ class _Hud extends StatelessWidget {
                 onPressed: () => Navigator.of(context).maybePop(),
                 icon: const Icon(Icons.arrow_back_ios_new, color: Palette.cream),
               ),
-              MascotView(size: 50, mood: combo > 1 ? MascotMood.cheer : MascotMood.idle),
+              MascotView(size: 50, mood: berkah || combo > 1 ? MascotMood.cheer : MascotMood.idle),
               const Spacer(),
               if (timeLeft != null) ...[
                 _Pill(
