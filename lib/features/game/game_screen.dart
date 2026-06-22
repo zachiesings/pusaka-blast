@@ -290,6 +290,7 @@ class _Hud extends StatelessWidget {
                 onPressed: () => Navigator.of(context).maybePop(),
                 icon: const Icon(Icons.arrow_back_ios_new, color: Palette.cream),
               ),
+              MascotView(size: 50, mood: combo > 1 ? MascotMood.cheer : MascotMood.idle),
               const Spacer(),
               _Pill(icon: Icons.monetization_on, label: '$coins', color: Palette.gold),
               const SizedBox(width: 8),
