@@ -262,6 +262,20 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 10),
                 ],
               ),
+              // cinematic vignette for depth
+              const IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 1.1,
+                      colors: [Colors.transparent, Color(0x55000000)],
+                      stops: [0.62, 1.0],
+                    ),
+                  ),
+                  child: SizedBox.expand(),
+                ),
+              ),
               if (gc.berkahActive && !gc.isGameOver)
                 IgnorePointer(
                   child: DecoratedBox(
