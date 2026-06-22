@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../../widgets/batik.dart';
+import '../../widgets/mascot.dart';
+import '../../widgets/soft_card.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -12,22 +14,45 @@ class AboutScreen extends StatelessWidget {
       body: BatikBackground(
         child: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: const [
-              Text('Pusaka Blast',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Palette.cream)),
-              SizedBox(height: 8),
-              Text('Teka-teki balok 8×8 dengan motif batik Nusantara. '
-                  'Susun balok, bersihkan baris & kolom, kejar skor tertinggi.',
-                  style: TextStyle(color: Palette.goldSoft, height: 1.5)),
-              SizedBox(height: 24),
-              Text('Privasi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Palette.cream)),
-              SizedBox(height: 8),
-              Text('Game ini menampilkan iklan (AdMob) yang bersifat non-personalisasi. '
-                  'Skor dan koin disimpan hanya di perangkatmu.',
-                  style: TextStyle(color: Palette.goldSoft, height: 1.5)),
-              SizedBox(height: 24),
-              Text('Versi 1.0.0', style: TextStyle(color: Palette.gold)),
+            padding: const EdgeInsets.all(20),
+            children: [
+              const SizedBox(height: 8),
+              const Center(child: MascotView(size: 110, mood: MascotMood.happy)),
+              const SizedBox(height: 8),
+              const Center(child: GoldTitle('PUSAKA BLAST', size: 28, letterSpacing: 1.5)),
+              const SizedBox(height: 6),
+              Center(
+                child: Text('Versi 1.0.0',
+                    style: TextStyle(color: Palette.cream.withOpacity(0.5), letterSpacing: 1)),
+              ),
+              const SizedBox(height: 20),
+              SoftCard(
+                glow: Palette.gold,
+                child: Text(
+                    'Teka-teki balok 8×8 dengan motif batik Nusantara. Susun balok, '
+                    'bersihkan baris & kolom, kejar combo & skor tertinggi.',
+                    style: TextStyle(color: Palette.cream.withOpacity(0.75), height: 1.5)),
+              ),
+              const SizedBox(height: 14),
+              SoftCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: const [
+                      Icon(Icons.shield_rounded, color: Palette.gold, size: 20),
+                      SizedBox(width: 8),
+                      Text('Privasi',
+                          style: TextStyle(
+                              color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                    ]),
+                    const SizedBox(height: 8),
+                    Text(
+                        'Iklan (AdMob) non-personalisasi. Skor & koin disimpan hanya di '
+                        'perangkatmu. Tidak ada pelacakan lintas-aplikasi.',
+                        style: TextStyle(color: Palette.cream.withOpacity(0.65), height: 1.5)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),

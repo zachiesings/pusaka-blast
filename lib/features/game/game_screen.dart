@@ -335,15 +335,17 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: Palette.panel,
+        color: Palette.panel.withOpacity(0.6),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.35), width: 1),
+        boxShadow: Palette.glow(color, blur: 12, a: 0.22),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 6),
-        Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+        Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
       ]),
     );
   }
@@ -370,9 +372,14 @@ class _HowToOverlay extends StatelessWidget {
         margin: const EdgeInsets.all(28),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Palette.bg1,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Palette.gold.withOpacity(0.4), width: 1.5),
+          gradient: const LinearGradient(
+            colors: [Palette.panel, Palette.bg1],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Palette.gold.withOpacity(0.45), width: 1.5),
+          boxShadow: Palette.glow(Palette.gold, blur: 36, a: 0.35),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
