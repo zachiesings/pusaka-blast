@@ -217,6 +217,24 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 10),
                 ],
               ),
+              if (gc.combo > 1 && !gc.isGameOver)
+                IgnorePointer(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 92),
+                      child: Transform.scale(
+                        scale: 1 + gc.combo.clamp(0, 8) * 0.06,
+                        child: Text('COMBO ×${gc.combo}',
+                            style: const TextStyle(
+                                color: Palette.coral,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1)),
+                      ),
+                    ),
+                  ),
+                ),
               if (_wasSpecial)
                 Positioned.fill(
                   child: IgnorePointer(
