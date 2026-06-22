@@ -13,6 +13,7 @@ import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
 import '../shop/shop_screen.dart';
+import '../achievements/achievements_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -182,19 +183,36 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   onTap: () => _play(context),
                 ),
                 const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ShopScreen())),
-                    icon: const Icon(Icons.palette),
-                    label: const Text('Toko Batik'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Palette.gold,
-                      side: const BorderSide(color: Palette.gold),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ShopScreen())),
+                        icon: const Icon(Icons.palette),
+                        label: const Text('Toko'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Palette.gold,
+                          side: const BorderSide(color: Palette.gold),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const AchievementsScreen())),
+                        icon: const Icon(Icons.emoji_events),
+                        label: const Text('Pencapaian'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Palette.gold,
+                          side: const BorderSide(color: Palette.gold),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(

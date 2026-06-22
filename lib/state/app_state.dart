@@ -117,6 +117,7 @@ class AppState extends ChangeNotifier {
 
   // ----- Batik skins -----
   String get selectedSkin => _selectedSkin;
+  int get unlockedSkinCount => _unlockedSkins.length;
   bool isSkinUnlocked(String id) => _unlockedSkins.contains(id);
 
   /// Buy [skin] with coins (and equip it). Returns false if too poor / owned.
