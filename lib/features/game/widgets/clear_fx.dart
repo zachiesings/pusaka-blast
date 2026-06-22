@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../game/models/cell.dart';
@@ -38,6 +39,32 @@ class ClearFxPainter extends CustomPainter {
         ),
         Paint()..color = Palette.cream.withOpacity(0.85 * fade),
       );
+      // Expanding gold ring
+      canvas.drawCircle(
+        center,
+        cell * (0.3 + t * 0.9),
+        Paint()
+          ..color = Palette.goldLt.withOpacity(0.6 * fade)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = cell * 0.07 * fade,
+      );
+      // Flying batik shards (diamonds) spinning outward
+      final shard = Paint()..color = Palette.goldLt.withOpacity(0.9 * fade);
+      for (var k = 0; k < 4; k++) {
+        final ang = k * math.pi / 2 + t * 3 + (c.col + c.row);
+        final dist = cell * (0.2 + t * 1.1);
+        final p = center + Offset(math.cos(ang), math.sin(ang)) * dist;
+        final sz = cell * 0.12 * fade;
+        canvas.drawPath(
+          Path()
+            ..moveTo(p.dx, p.dy - sz)
+            ..lineTo(p.dx + sz, p.dy)
+            ..lineTo(p.dx, p.dy + sz)
+            ..lineTo(p.dx - sz, p.dy)
+            ..close(),
+          shard,
+        );
+      }
     }
   }
 
