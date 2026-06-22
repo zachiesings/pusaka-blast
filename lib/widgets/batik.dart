@@ -2,8 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
 
-/// Shared tile painter — used by the board, tray and drag-feedback so every
-/// block looks identical. A bevel + a procedural batik "kawung" motif. No images.
+/// Shared block-tile painter — matte carved-wood tile with a bevel + a small
+/// kawung batik stamp + gold rim. (Distinct from Tiles' glassy glowing tiles.)
 class BatikTile {
   BatikTile._();
 
@@ -11,55 +11,43 @@ class BatikTile {
     final r = rect.deflate(rect.width * 0.06);
     final radius = Radius.circular(rect.width * 0.22);
     final rr = RRect.fromRectAndRadius(r, radius);
-
-    // soft drop for depth
     canvas.drawRRect(rr.shift(const Offset(0, 2)),
-        Paint()..color = Colors.black.withOpacity(0.25 * opacity));
-    // body with a subtle vertical gradient
+        Paint()..color = Colors.black.withOpacity(0.28 * opacity));
     canvas.drawRRect(
       rr,
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.lerp(color, Colors.white, 0.18)!, color],
+          colors: [Color.lerp(color, Colors.white, 0.16)!, color, Color.lerp(color, Colors.black, 0.12)!],
         ).createShader(r),
     );
-    // top gloss
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-          Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.4), radius),
-      Paint()..color = Colors.white.withOpacity(0.16 * opacity),
+      RRect.fromRectAndRadius(Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.4), radius),
+      Paint()..color = Colors.white.withOpacity(0.14 * opacity),
     );
-    // kawung motif
-    final cx = r.center.dx, cy = r.center.dy, s = r.width * 0.26;
+    final cx = r.center.dx, cy = r.center.dy, s = r.width * 0.24;
     final motif = Paint()
-      ..color = Palette.cream.withOpacity(0.26 * opacity)
+      ..color = Palette.cream.withOpacity(0.22 * opacity)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = r.width * 0.045;
-    final path = Path()
-      ..moveTo(cx, cy - s)
-      ..lineTo(cx + s, cy)
-      ..lineTo(cx, cy + s)
-      ..lineTo(cx - s, cy)
-      ..close();
-    canvas.drawPath(path, motif);
-    canvas.drawCircle(Offset(cx, cy), r.width * 0.06,
-        Paint()..color = Palette.cream.withOpacity(0.3 * opacity));
-    // gold rim
+      ..strokeWidth = r.width * 0.04;
+    canvas.drawPath(
+      Path()..moveTo(cx, cy - s)..lineTo(cx + s, cy)..lineTo(cx, cy + s)..lineTo(cx - s, cy)..close(),
+      motif,
+    );
     canvas.drawRRect(
       rr,
       Paint()
-        ..color = Palette.goldSoft.withOpacity(0.4 * opacity)
+        ..color = Palette.goldSoft.withOpacity(0.45 * opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = rect.width * 0.025,
     );
   }
 }
 
-/// Premium living background: warm batik-night gradient + drifting gold glows +
-/// a cached, detailed KAWUNG batik motif (Pusaka Blast identity). Mirrors the
-/// Beat Nusantara quality bar. Same name so every screen gets it for free.
+/// PENDOPO EMAS background — warm wood-panel + a carved gold ornamental frame
+/// with corner flourishes + a soft warm vignette. Deliberately NOT the drifting
+/// glow-blob look; this is a regal, tactile, framed identity unique to Blast.
 class BatikBackground extends StatefulWidget {
   final Widget child;
   final bool dim;
@@ -72,7 +60,7 @@ class BatikBackground extends StatefulWidget {
 class _BatikBackgroundState extends State<BatikBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
+      AnimationController(vsync: this, duration: const Duration(seconds: 6))..repeat(reverse: true);
 
   @override
   void dispose() {
@@ -84,23 +72,23 @@ class _BatikBackgroundState extends State<BatikBackground>
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: RadialGradient(
+          center: Alignment(0, -0.3),
+          radius: 1.2,
           colors: [Palette.bg1, Palette.bg0],
         ),
       ),
       child: Stack(
         children: [
+          const Positioned.fill(child: RepaintBoundary(child: CustomPaint(painter: _WoodPainter()))),
           Positioned.fill(
             child: RepaintBoundary(
               child: AnimatedBuilder(
                 animation: _c,
-                builder: (_, __) => CustomPaint(painter: _GlowPainter(_c.value)),
+                builder: (_, __) => CustomPaint(painter: _OrnamentFrame(_c.value)),
               ),
             ),
           ),
-          const Positioned.fill(child: RepaintBoundary(child: CustomPaint(painter: _KawungPainter()))),
           if (widget.dim) const Positioned.fill(child: ColoredBox(color: Color(0x66000000))),
           widget.child,
         ],
@@ -109,83 +97,85 @@ class _BatikBackgroundState extends State<BatikBackground>
   }
 }
 
-class _GlowPainter extends CustomPainter {
-  final double t;
-  _GlowPainter(this.t);
-
-  static const _blobs = [
-    (Palette.gold, 0.16, 0.10, 360.0, 0.0),
-    (Palette.maroon, 0.90, 0.85, 380.0, 0.5),
-    (Palette.coral, 0.92, 0.16, 300.0, 0.25),
-    (Palette.jade, 0.08, 0.74, 280.0, 0.75),
-  ];
-
+/// Faint warm wood grain — gentle horizontal flowing lines.
+class _WoodPainter extends CustomPainter {
+  const _WoodPainter();
   @override
-  void paint(Canvas canvas, Size size) {
-    for (final b in _blobs) {
-      final phase = (t + b.$5) * 2 * math.pi;
-      final cx = b.$2 * size.width + math.sin(phase) * 26;
-      final cy = b.$3 * size.height + math.cos(phase) * 26;
-      final r = b.$4;
-      canvas.drawCircle(
-        Offset(cx, cy),
-        r,
-        Paint()
-          ..shader = RadialGradient(colors: [b.$1.withOpacity(0.22), b.$1.withOpacity(0.0)])
-              .createShader(Rect.fromCircle(center: Offset(cx, cy), radius: r)),
-      );
+  void paint(Canvas c, Size size) {
+    final p = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = Palette.goldSoft.withOpacity(0.04);
+    const gap = 26.0;
+    for (double y = 0; y < size.height; y += gap) {
+      final path = Path()..moveTo(0, y);
+      for (double x = 0; x <= size.width; x += 22) {
+        path.quadraticBezierTo(x + 11, y + math.sin(x / 90 + y) * 3.5, x + 22, y);
+      }
+      c.drawPath(path, p);
     }
-    // drifting gold specks
-    final spark = Paint();
-    for (var i = 0; i < 12; i++) {
-      final seed = i * 0.137;
-      final x = ((seed + 0.05) % 1.0) * size.width;
-      final prog = (t * (0.4 + seed) + seed) % 1.0;
-      final y = size.height * (1.05 - prog);
-      final a = math.sin(prog * math.pi) * 0.22;
-      spark.color = (i.isEven ? Palette.gold : Palette.goldLt).withOpacity(a);
-      canvas.drawCircle(Offset(x, y), 1.6 + (i % 3), spark);
-    }
+    // soft vignette
+    c.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0, -0.2),
+          radius: 1.1,
+          colors: [Colors.transparent, Palette.bg0.withOpacity(0.55)],
+          stops: const [0.6, 1.0],
+        ).createShader(Offset.zero & size),
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _GlowPainter old) => old.t != t;
+  bool shouldRepaint(covariant _WoodPainter old) => false;
 }
 
-/// Detailed KAWUNG motif — four petals in a ring + center jewel + isen dots.
-class _KawungPainter extends CustomPainter {
-  const _KawungPainter();
+/// A carved gold ornamental frame with kawung corner flourishes; gently glints.
+class _OrnamentFrame extends CustomPainter {
+  final double t; // 0..1 shimmer
+  _OrnamentFrame(this.t);
 
   @override
   void paint(Canvas c, Size size) {
-    final petal = Paint()
+    final glint = 0.5 + t * 0.5;
+    final line = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1
-      ..color = Palette.gold.withOpacity(0.085);
-    final faint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.9
-      ..color = Palette.gold.withOpacity(0.05);
-    final jewel = Paint()..color = Palette.gold.withOpacity(0.08);
-    const gap = 66.0, r = gap * 0.5;
-    for (double y = -gap; y < size.height + gap; y += gap) {
-      for (double x = -gap; x < size.width + gap; x += gap) {
-        final center = Offset(x + gap / 2, y + gap / 2);
-        c.drawCircle(center, r * 0.94, faint);
-        for (var k = 0; k < 4; k++) {
-          final ang = math.pi / 4 + k * math.pi / 2;
-          final oc = center + Offset(math.cos(ang), math.sin(ang)) * (r * 0.46);
-          c.save();
-          c.translate(oc.dx, oc.dy);
-          c.rotate(ang);
-          c.drawOval(Rect.fromCenter(center: Offset.zero, width: r * 1.02, height: r * 0.5), petal);
-          c.restore();
-        }
-        c.drawCircle(center, 2.2, jewel);
-      }
+      ..strokeWidth = 1.6
+      ..color = Palette.gold.withOpacity(0.32 * glint);
+    final inset = 14.0;
+    final rect = Rect.fromLTWH(inset, inset, size.width - inset * 2, size.height - inset * 2);
+    c.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(26)), line);
+    c.drawRRect(
+      RRect.fromRectAndRadius(rect.deflate(5), const Radius.circular(22)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8
+        ..color = Palette.gold.withOpacity(0.16 * glint),
+    );
+    // corner kawung flourishes
+    final fill = Paint()..color = Palette.gold.withOpacity(0.5 * glint);
+    final fillF = Paint()..color = Palette.gold.withOpacity(0.18 * glint);
+    for (final corner in [
+      rect.topLeft, rect.topRight, rect.bottomLeft, rect.bottomRight,
+    ]) {
+      _flourish(c, corner, fill, fillF);
+    }
+  }
+
+  void _flourish(Canvas c, Offset o, Paint fill, Paint fillF) {
+    c.drawCircle(o, 3.2, fill);
+    for (var k = 0; k < 4; k++) {
+      final ang = math.pi / 4 + k * math.pi / 2;
+      final p = o + Offset(math.cos(ang), math.sin(ang)) * 12;
+      c.save();
+      c.translate(p.dx, p.dy);
+      c.rotate(ang);
+      c.drawOval(Rect.fromCenter(center: Offset.zero, width: 16, height: 7), fillF);
+      c.restore();
     }
   }
 
   @override
-  bool shouldRepaint(covariant _KawungPainter old) => false;
+  bool shouldRepaint(covariant _OrnamentFrame old) => old.t != t;
 }
