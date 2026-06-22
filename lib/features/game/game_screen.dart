@@ -44,6 +44,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   int _seenSpecial = 0;
   bool _wasSpecial = false;
   bool _wasPerfect = false;
+  bool _wasBerkah = false;
   List<Cell> _fxCells = const [];
   int _fxGained = 0;
   int _fxLines = 0;
@@ -104,6 +105,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       _fxCombo = gc.combo;
       _wasSpecial = gc.specialEvent != _seenSpecial;
       _wasPerfect = gc.lastPerfect;
+      _wasBerkah = gc.berkahJustTriggered;
       _seenSpecial = gc.specialEvent;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fx.forward(from: 0);
@@ -194,6 +196,28 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     coins: app.coins,
                     timeLeft: gc.mode.timed ? gc.timeLeft : null,
                   ),
+                  // Berkah Keraton meter
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 2, 28, 0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.auto_awesome,
+                            color: gc.berkahActive ? Palette.gold : Palette.goldSoft, size: 14),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: gc.berkahActive ? 1.0 : gc.berkahMeter,
+                              minHeight: 5,
+                              backgroundColor: Palette.panel.withOpacity(0.6),
+                              color: gc.berkahActive ? Palette.gold : Palette.goldSoft,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Expanded(
                     child: AnimatedBuilder(
                       animation: _fx,
@@ -237,6 +261,35 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   const SizedBox(height: 10),
                 ],
               ),
+              if (gc.berkahActive && !gc.isGameOver)
+                IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: Alignment.center,
+                        radius: 1.0,
+                        colors: [Colors.transparent, Palette.gold.withOpacity(0.16)],
+                        stops: const [0.58, 1.0],
+                      ),
+                    ),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              if (gc.berkahActive && !gc.isGameOver)
+                IgnorePointer(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 64),
+                      child: Text('✦ BERKAH ×2 — ${gc.berkahClears} ✦',
+                          style: const TextStyle(
+                              color: Palette.gold,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1)),
+                    ),
+                  ),
+                ),
               if (gc.combo > 1 && !gc.isGameOver)
                 IgnorePointer(
                   child: Align(
@@ -272,9 +325,14 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                                 opacity: v,
                                 child: Transform.scale(
                                   scale: 0.8 + (1 - v) * 0.5,
-                                  child: Text(_wasPerfect ? 'PAPAN BERSIH!' : 'PUKULAN GAMELAN!',
+                                  child: Text(
+                                      _wasBerkah
+                                          ? 'BERKAH KERATON!'
+                                          : _wasPerfect
+                                              ? 'PAPAN BERSIH!'
+                                              : 'PUKULAN GAMELAN!',
                                       style: const TextStyle(
-                                          fontSize: 30,
+                                          fontSize: 28,
                                           fontWeight: FontWeight.w900,
                                           color: Palette.gold,
                                           letterSpacing: 1)),
@@ -309,7 +367,6 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
         ),
           ],
         ),
-      ),
     );
   }
 

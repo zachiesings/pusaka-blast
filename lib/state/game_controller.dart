@@ -40,6 +40,12 @@ class GameController extends ChangeNotifier {
   List<Cell> lastFilledCells = const []; // cells the last piece occupied (pop-in FX)
   int placeEvent = 0;
 
+  // ----- Berkah Keraton: clear-fuelled x2 mode -----
+  double berkahMeter = 0;   // 0..1, fills with each clearing move
+  int berkahClears = 0;     // remaining x2 clears while a Berkah is active
+  bool berkahJustTriggered = false; // bumped the frame a Berkah starts
+  bool get berkahActive => berkahClears > 0;
+
   GameController(this.app, {this.mode = BlastMode.klasik});
 
   void newGame() {
@@ -52,6 +58,8 @@ class GameController extends ChangeNotifier {
     isNewBest = false;
     hammerArmed = false;
     bombArmed = false;
+    berkahMeter = 0;
+    berkahClears = 0;
     _refillTray();
     _timer?.cancel();
     if (mode.timed) {
@@ -137,14 +145,29 @@ class GameController extends ChangeNotifier {
 
     lastFilledCells = result.filledCells;
     placeEvent++;
-    score += result.gained;
-    lastGained = result.gained;
+    berkahJustTriggered = false;
+    var gained = result.gained;
+    if (berkahActive && result.linesCleared > 0) {
+      gained *= 2; // Berkah Keraton doubles clear scores
+      berkahClears--;
+    }
+    score += gained;
+    lastGained = gained;
     lastLines = result.linesCleared;
 
     if (result.linesCleared > 0) {
       combo++;
       lastClearedCells = result.clearedCells;
       clearEvent++;
+      // Fill the Berkah meter; when full, light up a x2 streak.
+      berkahMeter += 0.13 * result.linesCleared;
+      if (berkahMeter >= 1.0 && !berkahActive) {
+        berkahMeter = 0;
+        berkahClears = 3;
+        berkahJustTriggered = true;
+        specialEvent++;
+        app.playSfx(Sfx.gong);
+      }
       app.recordLines(result.linesCleared);
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
       lastPerfect = result.boardCleared;
