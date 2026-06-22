@@ -36,6 +36,7 @@ class GameController extends ChangeNotifier {
   List<Cell> lastClearedCells = const [];
   int clearEvent = 0;
   int specialEvent = 0; // bumped on a big "Pukulan Gamelan" combo (screen flash + shake)
+  bool lastPerfect = false; // last special was a perfect board clear
   List<Cell> lastFilledCells = const []; // cells the last piece occupied (pop-in FX)
   int placeEvent = 0;
 
@@ -144,10 +145,14 @@ class GameController extends ChangeNotifier {
       lastClearedCells = result.clearedCells;
       clearEvent++;
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
-      if (combo >= 3 || result.linesCleared >= 3) {
+      lastPerfect = result.boardCleared;
+      if (result.boardCleared) {
+        specialEvent++;
+        app.addCoins(5); // perfect-clear coin bonus
+        app.playSfx(Sfx.gong);
+      } else if (combo >= 3 || result.linesCleared >= 3) {
         specialEvent++;
         app.playSfx(Sfx.gong); // Pukulan Gamelan!
-        _haptic(HapticFeedbackLevel.medium);
       } else {
         app.playSfx(combo > 1 ? Sfx.combo : Sfx.clear);
       }

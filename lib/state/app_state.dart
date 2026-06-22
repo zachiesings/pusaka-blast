@@ -83,6 +83,28 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
+  /// Grant +1 power-up for free (e.g. after a rewarded ad).
+  void grantPowerup(String kind) {
+    if (kind == 'hammer') {
+      _hammers++;
+      _prefs.setHammers(_hammers);
+    } else if (kind == 'bomb') {
+      _bombs++;
+      _prefs.setBombs(_bombs);
+    } else {
+      _shuffles++;
+      _prefs.setShuffles(_shuffles);
+    }
+    notifyListeners();
+  }
+
+  /// Show a rewarded ad and, if completed, grant the power-up. Returns true on grant.
+  Future<bool> rewardedPowerup(String kind) async {
+    final ok = await ads.showRewarded(RewardKind.bonusCoins);
+    if (ok) grantPowerup(kind);
+    return ok;
+  }
+
   // ----- Daily reward -----
   int get _today => DateTime.now().millisecondsSinceEpoch ~/ 86400000;
   bool get dailyClaimable => _prefs.lastClaimDay != _today;

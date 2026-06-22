@@ -40,6 +40,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   int _seenClearEvent = 0;
   int _seenSpecial = 0;
   bool _wasSpecial = false;
+  bool _wasPerfect = false;
   List<Cell> _fxCells = const [];
   int _fxGained = 0;
   int _fxLines = 0;
@@ -87,6 +88,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       _fxLines = gc.lastLines;
       _fxCombo = gc.combo;
       _wasSpecial = gc.specialEvent != _seenSpecial;
+      _wasPerfect = gc.lastPerfect;
       _seenSpecial = gc.specialEvent;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _fx.forward(from: 0);
@@ -194,21 +196,21 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                       if (app.hammers > 0) {
                         gc.armHammer();
                       } else {
-                        app.buyPowerup('hammer');
+                        app.rewardedPowerup('hammer');
                       }
                     },
                     onShuffle: () {
                       if (app.shuffles > 0) {
                         gc.useShuffle();
                       } else {
-                        app.buyPowerup('shuffle');
+                        app.rewardedPowerup('shuffle');
                       }
                     },
                     onBomb: () {
                       if (app.bombs > 0) {
                         gc.armBomb();
                       } else {
-                        app.buyPowerup('bomb');
+                        app.rewardedPowerup('bomb');
                       }
                     },
                   ),
@@ -232,8 +234,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                                 opacity: v,
                                 child: Transform.scale(
                                   scale: 0.8 + (1 - v) * 0.5,
-                                  child: const Text('PUKULAN GAMELAN!',
-                                      style: TextStyle(
+                                  child: Text(_wasPerfect ? 'PAPAN BERSIH!' : 'PUKULAN GAMELAN!',
+                                      style: const TextStyle(
                                           fontSize: 30,
                                           fontWeight: FontWeight.w900,
                                           color: Palette.gold,
@@ -534,11 +536,7 @@ class _PowerupBar extends StatelessWidget {
                         color: Palette.ink, fontWeight: FontWeight.w900, fontSize: 12)),
               )
             else
-              Row(mainAxisSize: MainAxisSize.min, children: const [
-                Icon(Icons.add, color: Palette.coral, size: 14),
-                Icon(Icons.monetization_on, color: Palette.coral, size: 13),
-                Text(' 40', style: TextStyle(color: Palette.coral, fontWeight: FontWeight.w700, fontSize: 12)),
-              ]),
+              const Icon(Icons.smart_display_rounded, color: Palette.coral, size: 18),
           ]),
         ),
       );

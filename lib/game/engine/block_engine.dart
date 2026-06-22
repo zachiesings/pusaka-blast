@@ -9,6 +9,7 @@ class PlaceResult {
   final int gained;            // score added by this move (placement + clears)
   final List<Cell> filledCells;   // cells the piece occupied (for pop-in FX)
   final List<Cell> clearedCells;  // cells removed by line clears (for clear FX)
+  final bool boardCleared;        // the whole board is empty after this move (perfect clear)
 
   const PlaceResult({
     required this.placed,
@@ -16,6 +17,7 @@ class PlaceResult {
     this.gained = 0,
     this.filledCells = const [],
     this.clearedCells = const [],
+    this.boardCleared = false,
   });
 
   static const PlaceResult invalid = PlaceResult(placed: false);
@@ -144,18 +146,34 @@ class BlockEngine {
       _grid[cell.row][cell.col] = null;
     }
 
+    // Perfect clear: the entire board is empty after this move.
+    var boardCleared = cleared.isNotEmpty;
+    if (boardCleared) {
+      outer:
+      for (var r = 0; r < size; r++) {
+        for (var c = 0; c < size; c++) {
+          if (_grid[r][c] != null) {
+            boardCleared = false;
+            break outer;
+          }
+        }
+      }
+    }
+
     final lines = fullRows.length + fullCols.length;
     // Scoring: +1 per placed cell, +10 per cleared line, escalating bonus for
     // multi-line clears, all scaled by the current combo multiplier.
     final placeScore = piece.size;
     final clearScore = lines == 0 ? 0 : (10 * lines + 10 * lines * (lines - 1)) * comboMultiplier;
+    final perfectBonus = boardCleared ? 300 : 0;
 
     return PlaceResult(
       placed: true,
       linesCleared: lines,
-      gained: placeScore + clearScore,
+      gained: placeScore + clearScore + perfectBonus,
       filledCells: filled,
       clearedCells: cleared.toList(growable: false),
+      boardCleared: boardCleared,
     );
   }
 }
