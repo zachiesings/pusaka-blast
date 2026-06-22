@@ -77,9 +77,16 @@ class _SkinCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Palette.panel,
-        borderRadius: BorderRadius.circular(18),
-        border: selected ? Border.all(color: Palette.gold, width: 2) : null,
+        gradient: LinearGradient(
+          colors: [Palette.panel.withOpacity(0.95), Palette.bg1.withOpacity(0.6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+            color: selected ? Palette.gold : Palette.gold.withOpacity(0.18),
+            width: selected ? 2 : 1),
+        boxShadow: selected ? Palette.glow(Palette.gold, blur: 22, a: 0.3) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

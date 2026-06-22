@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../../state/app_state.dart';
 import '../../widgets/batik.dart';
+import '../../widgets/soft_card.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -17,30 +18,46 @@ class SettingsScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              SwitchListTile(
-                value: app.sound,
-                onChanged: app.setSound,
-                activeColor: Palette.gold,
-                title: const Text('Suara', style: TextStyle(color: Palette.cream)),
-                subtitle: const Text('Efek suara saat menaruh & membersihkan baris',
-                    style: TextStyle(color: Palette.goldSoft)),
+              SoftCard(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: Column(
+                  children: [
+                    _toggle(Icons.music_note_rounded, 'Musik', 'BGM gamelan di beranda',
+                        app.music, app.setMusic),
+                    _divider(),
+                    _toggle(Icons.volume_up_rounded, 'Suara', 'Efek saat menaruh & membersihkan baris',
+                        app.sound, app.setSound),
+                    _divider(),
+                    _toggle(Icons.vibration_rounded, 'Getaran', 'Umpan-balik getar (haptic)',
+                        app.haptics, app.setHaptics),
+                  ],
+                ),
               ),
-              SwitchListTile(
-                value: app.haptics,
-                onChanged: app.setHaptics,
-                activeColor: Palette.gold,
-                title: const Text('Getaran', style: TextStyle(color: Palette.cream)),
-                subtitle: const Text('Umpan-balik getar (haptic)',
-                    style: TextStyle(color: Palette.goldSoft)),
-              ),
-              const Divider(color: Palette.gridLine, height: 32),
-              const ListTile(
-                leading: Icon(Icons.lightbulb_outline, color: Palette.gold),
-                title: Text('Cara Bermain', style: TextStyle(color: Palette.cream)),
-                subtitle: Text(
-                    'Seret balok ke papan 8×8. Penuhi satu baris atau kolom untuk '
-                    'membersihkannya. Bersihkan beberapa baris sekaligus untuk combo!',
-                    style: TextStyle(color: Palette.goldSoft)),
+              const SizedBox(height: 16),
+              SoftCard(
+                glow: Palette.gold,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.lightbulb_rounded, color: Palette.gold),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Cara Bermain',
+                              style: TextStyle(
+                                  color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                          const SizedBox(height: 4),
+                          Text(
+                              'Seret balok ke papan 8×8. Penuhi satu baris atau kolom untuk '
+                              'membersihkannya. Bersihkan beberapa sekaligus untuk COMBO!',
+                              style: TextStyle(color: Palette.cream.withOpacity(0.6), height: 1.4)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -48,4 +65,18 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _divider() => Divider(color: Palette.gold.withOpacity(0.12), height: 1, indent: 16, endIndent: 16);
+
+  Widget _toggle(IconData icon, String title, String sub, bool value, ValueChanged<bool> onChanged) =>
+      SwitchListTile(
+        value: value,
+        onChanged: onChanged,
+        activeColor: Palette.gold,
+        activeTrackColor: Palette.goldSoft,
+        secondary: Icon(icon, color: Palette.gold),
+        title: Text(title,
+            style: const TextStyle(color: Palette.cream, fontWeight: FontWeight.w700)),
+        subtitle: Text(sub, style: TextStyle(color: Palette.cream.withOpacity(0.5), fontSize: 12)),
+      );
 }
