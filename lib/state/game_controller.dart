@@ -48,19 +48,12 @@ class GameController extends ChangeNotifier {
     isGameOver = false;
     isNewBest = false;
     hammerArmed = false;
+    bombArmed = false;
     _refillTray();
     _timer?.cancel();
     if (mode.timed) {
       timeLeft = mode.seconds;
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (isGameOver) return;
-        timeLeft--;
-        if (timeLeft <= 0) {
-          timeLeft = 0;
-          _endGame();
-        }
-        notifyListeners();
-      });
+      _startTimer();
     }
     notifyListeners();
   }
@@ -182,9 +175,25 @@ class GameController extends ChangeNotifier {
     engine.reset();
     combo = 0;
     isGameOver = false;
-    if (mode.timed && timeLeft <= 0) timeLeft = 30; // give time back on revive
+    if (mode.timed) {
+      if (timeLeft <= 0) timeLeft = 30; // give time back on revive
+      _startTimer(); // restart the (cancelled) countdown
+    }
     _refillTray();
     notifyListeners();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (isGameOver) return;
+      timeLeft--;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        _endGame();
+      }
+      notifyListeners();
+    });
   }
 
   @override
