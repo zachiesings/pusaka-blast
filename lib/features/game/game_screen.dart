@@ -484,7 +484,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
             data: i,
             dragAnchorStrategy: (draggable, ctx, pos) =>
                 Offset(feedbackW / 2, feedbackH / 2 + feedbackCell * _liftCells),
-            feedback: PieceWidget(piece: piece, cell: feedbackCell, opacity: 0.92),
+            feedback: PieceWidget(piece: piece, cell: feedbackCell, opacity: 0.98, glow: true),
             childWhenDragging: Opacity(
               opacity: 0.25,
               child: PieceWidget(piece: piece, cell: cell),
