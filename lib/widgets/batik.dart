@@ -51,7 +51,7 @@ class BatikTile {
       ..lineTo(cx - s, cy)
       ..close();
     canvas.drawPath(path, motif);
-    canvas.drawCircle(cx, cy, r.width * 0.06,
+    canvas.drawCircle(Offset(cx, cy), r.width * 0.06,
         Paint()..color = Palette.cream.withOpacity(0.3 * opacity));
 
     // Border
