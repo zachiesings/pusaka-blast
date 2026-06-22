@@ -8,6 +8,7 @@ import '../../widgets/batik.dart';
 import '../../widgets/banner_ad.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/home_decor.dart';
+import '../game/widgets/game_backdrop.dart';
 import '../../widgets/mascot.dart';
 import '../../widgets/soft_card.dart';
 import '../game/game_screen.dart';
@@ -127,6 +128,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       body: BatikBackground(
         child: Stack(
           children: [
+            const Positioned.fill(child: GameBackdrop()),
             const Positioned(top: 0, left: 0, right: 0, child: PendopoRoof()),
             SafeArea(
           child: Padding(
