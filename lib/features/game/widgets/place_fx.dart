@@ -18,6 +18,22 @@ class PlacePopPainter extends CustomPainter {
     final cell = size.width / gridSize;
     final fade = (1 - t).clamp(0.0, 1.0);
 
+    // ripple wave radiating from the placed piece's centroid across the board
+    var sx = 0.0, sy = 0.0;
+    for (final c in cells) {
+      sx += (c.col + 0.5) * cell;
+      sy += (c.row + 0.5) * cell;
+    }
+    final origin = Offset(sx / cells.length, sy / cells.length);
+    canvas.drawCircle(
+      origin,
+      cell * (0.4 + t * 4.0),
+      Paint()
+        ..color = Palette.gold.withOpacity(0.22 * fade)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.12 * fade,
+    );
+
     for (final c in cells) {
       final center = Offset((c.col + 0.5) * cell, (c.row + 0.5) * cell);
       // bright flash that shrinks slightly
