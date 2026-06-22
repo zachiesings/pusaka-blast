@@ -1,23 +1,32 @@
 import 'package:flutter/foundation.dart';
 import '../services/storage/prefs.dart';
 import '../services/ads/ads_service.dart';
+import '../services/audio/audio_service.dart';
 
 /// App-wide persisted state: high score, coins, and settings. Lives above the
 /// gameplay session so values survive between runs.
 class AppState extends ChangeNotifier {
   final Prefs _prefs;
   final AdsService ads;
+  final AudioService audio;
 
   int _highScore;
   int _coins;
   bool _sound;
   bool _haptics;
 
-  AppState(this._prefs, this.ads)
+  AppState(this._prefs, this.ads, this.audio)
       : _highScore = _prefs.highScore,
         _coins = _prefs.coins,
         _sound = _prefs.sound,
-        _haptics = _prefs.haptics;
+        _haptics = _prefs.haptics {
+    audio.enabled = _sound;
+  }
+
+  /// Play an SFX if sound is on. Called by gameplay code.
+  void playSfx(Sfx s) {
+    if (_sound) audio.play(s);
+  }
 
   int get highScore => _highScore;
   int get coins => _coins;
@@ -53,6 +62,7 @@ class AppState extends ChangeNotifier {
 
   void setSound(bool v) {
     _sound = v;
+    audio.enabled = v;
     _prefs.setSound(v);
     notifyListeners();
   }

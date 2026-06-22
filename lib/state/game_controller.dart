@@ -6,6 +6,7 @@ import '../game/engine/block_engine.dart';
 import '../game/models/block_piece.dart';
 import '../game/models/cell.dart';
 import '../game/pieces.dart';
+import '../services/audio/audio_service.dart';
 import 'app_state.dart';
 
 /// Drives a single play session: the board engine, the 3-piece tray, score and
@@ -74,9 +75,11 @@ class GameController extends ChangeNotifier {
       lastClearedCells = result.clearedCells;
       clearEvent++;
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
+      app.playSfx(combo > 1 ? Sfx.combo : Sfx.clear);
       _haptic(HapticFeedbackLevel.medium);
     } else {
       combo = 0;
+      app.playSfx(Sfx.place);
       _haptic(HapticFeedbackLevel.light);
     }
 
@@ -95,6 +98,7 @@ class GameController extends ChangeNotifier {
     if (!anyFits) {
       isGameOver = true;
       isNewBest = app.submitScore(score);
+      app.playSfx(Sfx.gameover);
     }
   }
 
