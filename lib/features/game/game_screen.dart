@@ -351,6 +351,8 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   score: gc.score,
                   best: app.highScore,
                   isNewBest: gc.isNewBest,
+                  maxCombo: gc.maxCombo,
+                  berkahCount: gc.berkahCount,
                   onRevive: () => _revive(context, gc, app),
                   onRestart: () async {
                     await app.maybeShowInterstitial();
@@ -629,6 +631,33 @@ class _Pill extends StatelessWidget {
   }
 }
 
+/// A small run-summary stat chip in the game-over panel.
+class _RunStat extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  const _RunStat({required this.icon, required this.label, required this.value});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Palette.bg1.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Palette.gold.withOpacity(0.25)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Palette.gold, size: 18),
+          const SizedBox(height: 2),
+          Text(value,
+              style: const TextStyle(color: Palette.cream, fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(label, style: TextStyle(color: Palette.cream.withOpacity(0.55), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
 /// Small batik diamond ornament that flanks the score.
 class _Diamond extends StatelessWidget {
   const _Diamond();
@@ -809,13 +838,15 @@ class _ScorePop extends StatelessWidget {
 }
 
 class _GameOverOverlay extends StatelessWidget {
-  final int score, best;
+  final int score, best, maxCombo, berkahCount;
   final bool isNewBest;
   final VoidCallback onRevive, onRestart, onHome;
   const _GameOverOverlay({
     required this.score,
     required this.best,
     required this.isNewBest,
+    this.maxCombo = 0,
+    this.berkahCount = 0,
     required this.onRevive,
     required this.onRestart,
     required this.onHome,
@@ -850,7 +881,16 @@ class _GameOverOverlay extends StatelessWidget {
             Text('$score',
                 style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w900, color: Palette.gold)),
             Text('Terbaik: $best', style: const TextStyle(color: Palette.cream)),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _RunStat(icon: Icons.bolt, label: 'Combo', value: '×$maxCombo'),
+                const SizedBox(width: 10),
+                _RunStat(icon: Icons.auto_awesome, label: 'Berkah', value: '$berkahCount'),
+              ],
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

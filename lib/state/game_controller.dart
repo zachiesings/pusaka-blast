@@ -45,6 +45,8 @@ class GameController extends ChangeNotifier {
   int berkahClears = 0;     // remaining x2 clears while a Berkah is active
   bool berkahJustTriggered = false; // bumped the frame a Berkah starts
   bool get berkahActive => berkahClears > 0;
+  int maxCombo = 0;         // best combo this run (game-over summary)
+  int berkahCount = 0;      // Berkah triggers this run
 
   GameController(this.app, {this.mode = BlastMode.klasik});
 
@@ -60,6 +62,8 @@ class GameController extends ChangeNotifier {
     bombArmed = false;
     berkahMeter = 0;
     berkahClears = 0;
+    maxCombo = 0;
+    berkahCount = 0;
     _refillTray();
     _timer?.cancel();
     if (mode.timed) {
@@ -157,6 +161,7 @@ class GameController extends ChangeNotifier {
 
     if (result.linesCleared > 0) {
       combo++;
+      if (combo > maxCombo) maxCombo = combo;
       lastClearedCells = result.clearedCells;
       clearEvent++;
       // Fill the Berkah meter; when full, light up a x2 streak.
@@ -165,6 +170,7 @@ class GameController extends ChangeNotifier {
         berkahMeter = 0;
         berkahClears = 3;
         berkahJustTriggered = true;
+        berkahCount++;
         specialEvent++;
         app.playSfx(Sfx.gong);
       }
