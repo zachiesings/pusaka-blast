@@ -5,6 +5,7 @@ import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/banner_ad.dart';
+import '../../widgets/gradient_button.dart';
 import '../../widgets/mascot.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
@@ -91,14 +92,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const Spacer(),
                 _StatRow(best: app.highScore, coins: app.coins),
                 const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _play(context),
-                    style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20)),
-                    child: const Text('MAIN', style: TextStyle(fontSize: 20, letterSpacing: 2)),
-                  ),
+                GradientButton(
+                  label: 'MAIN',
+                  icon: Icons.play_arrow_rounded,
+                  height: 66,
+                  fontSize: 20,
+                  onTap: () => _play(context),
                 ),
                 const SizedBox(height: 14),
                 SizedBox(

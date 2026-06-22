@@ -39,25 +39,41 @@ class K {
 class Palette {
   Palette._();
 
-  static const Color bg0      = Color(0xFF15110A); // near-black sogan
-  static const Color bg1      = Color(0xFF241B10); // deep coffee brown
-  static const Color panel    = Color(0xFF2E2316); // raised wood panel
-  static const Color gridCell = Color(0xFF3A2D1C); // empty board cell
-  static const Color gridLine = Color(0xFF4A3A24);
+  // === "PENDOPO EMAS" — warm, regal golden-batik identity (distinct from Tiles) ===
+  static const Color bg0      = Color(0xFF1A1108); // deepest warm sogan night
+  static const Color bg1      = Color(0xFF2C1C0C); // espresso batik
+  static const Color panel    = Color(0xFF3A2614); // raised teak wood panel
+  static const Color panelHi  = Color(0xFF4E331A); // highlighted wood
+  static const Color gridCell = Color(0xFF2E1F10); // empty board cell
+  static const Color gridLine = Color(0xFF53381E);
 
-  static const Color gold     = Color(0xFFE3B23C); // gamelan gold (accents)
+  static const Color gold     = Color(0xFFF2B73C); // prada gold (hero)
+  static const Color goldLt   = Color(0xFFFCD675);
   static const Color goldSoft = Color(0xFFC8923A);
-  static const Color cream    = Color(0xFFF3E5C8); // batik canvas cream
-  static const Color ink      = Color(0xFF1B130A);
+  static const Color cream    = Color(0xFFF7EFE2); // kuning gading
+  static const Color ink      = Color(0xFF1A1108);
 
-  // Block / batik-motif colors (each piece picks one).
+  // warm accents
+  static const Color coral    = Color(0xFFE8744C); // senja terracotta
+  static const Color maroon   = Color(0xFFB23A4E); // marun
+  static const Color jade     = Color(0xFF2FA987); // gamelan jade
+
+  static const LinearGradient brand = LinearGradient(
+    colors: [goldLt, gold, coral],
+    begin: Alignment.topLeft, end: Alignment.bottomRight,
+  );
+
+  static List<BoxShadow> glow(Color c, {double blur = 26, double y = 10, double a = 0.5}) =>
+      [BoxShadow(color: c.withOpacity(a), blurRadius: blur, offset: Offset(0, y))];
+
+  // Block colors — rich, saturated, warm-led batik tones.
   static const List<Color> blockColors = <Color>[
-    Color(0xFF7A3B2E), // bata — terracotta red
-    Color(0xFF1F4E5F), // indigo nila
-    Color(0xFFB5832E), // sogan kuning
-    Color(0xFF4A6B3A), // daun — leaf green
-    Color(0xFF6E3B5C), // anggur — plum
-    Color(0xFF2E5E6E), // teal pesisir
-    Color(0xFFA84B2A), // tembaga — copper
+    Color(0xFFE8744C), // terracotta
+    Color(0xFFF2B73C), // prada gold
+    Color(0xFF2FA987), // jade
+    Color(0xFFB23A4E), // marun
+    Color(0xFFD98A2B), // amber sogan
+    Color(0xFF8C5BA6), // plum
+    Color(0xFF3F8C7A), // teal tua
   ];
 }
