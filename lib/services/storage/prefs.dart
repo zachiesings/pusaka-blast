@@ -22,4 +22,12 @@ class Prefs {
 
   bool get firstRun => _p.getBool(K.kFirstRun) ?? true;
   Future<void> setFirstRunDone() => _p.setBool(K.kFirstRun, false);
+
+  List<String> get unlockedSkins =>
+      (_p.getString(K.kUnlockedSkins) ?? 'klasik').split(',').where((s) => s.isNotEmpty).toList();
+  Future<void> setUnlockedSkins(List<String> ids) =>
+      _p.setString(K.kUnlockedSkins, ids.join(','));
+
+  String get selectedSkin => _p.getString(K.kSelectedSkin) ?? 'klasik';
+  Future<void> setSelectedSkin(String id) => _p.setString(K.kSelectedSkin, id);
 }

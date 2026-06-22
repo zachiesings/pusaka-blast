@@ -7,6 +7,7 @@ import '../../widgets/batik.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
+import '../shop/shop_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -67,6 +68,21 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ShopScreen())),
+                    icon: const Icon(Icons.palette),
+                    label: const Text('Toko Batik'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Palette.gold,
+                      side: const BorderSide(color: Palette.gold),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(

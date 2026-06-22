@@ -14,4 +14,8 @@ class CoreColors {
     Color(0xFF2E5E6E), // teal pesisir
     Color(0xFFA84B2A), // tembaga — copper
   ];
+
+  /// The palette currently in use (set from the selected batik skin). Defaults
+  /// to the classic colors; updated by AppState when a skin is chosen.
+  static List<Color> active = blockColors;
 }

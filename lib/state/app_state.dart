@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../game/core_colors.dart';
+import '../game/skins.dart';
 import '../services/storage/prefs.dart';
 import '../services/ads/ads_service.dart';
 import '../services/audio/audio_service.dart';
@@ -14,6 +16,9 @@ class AppState extends ChangeNotifier {
   int _coins;
   bool _sound;
   bool _haptics;
+  late Set<String> _unlockedSkins;
+  late String _selectedSkin;
+  int _overCount = 0; // game-overs, for interstitial cadence
 
   AppState(this._prefs, this.ads, this.audio)
       : _highScore = _prefs.highScore,
@@ -21,6 +26,37 @@ class AppState extends ChangeNotifier {
         _sound = _prefs.sound,
         _haptics = _prefs.haptics {
     audio.enabled = _sound;
+    _unlockedSkins = _prefs.unlockedSkins.toSet()..add('klasik');
+    _selectedSkin = _prefs.selectedSkin;
+    CoreColors.active = SkinCatalog.byId(_selectedSkin).colors;
+  }
+
+  // ----- Batik skins -----
+  String get selectedSkin => _selectedSkin;
+  bool isSkinUnlocked(String id) => _unlockedSkins.contains(id);
+
+  /// Buy [skin] with coins (and equip it). Returns false if too poor / owned.
+  bool buySkin(Skin skin) {
+    if (_unlockedSkins.contains(skin.id)) return false;
+    if (!spendCoins(skin.cost)) return false;
+    _unlockedSkins.add(skin.id);
+    _prefs.setUnlockedSkins(_unlockedSkins.toList());
+    selectSkin(skin.id);
+    return true;
+  }
+
+  void selectSkin(String id) {
+    if (!_unlockedSkins.contains(id)) return;
+    _selectedSkin = id;
+    _prefs.setSelectedSkin(id);
+    CoreColors.active = SkinCatalog.byId(id).colors;
+    notifyListeners();
+  }
+
+  /// Show an interstitial on roughly every 2nd game-over (called on restart).
+  Future<void> maybeShowInterstitial() async {
+    _overCount++;
+    if (_overCount % 2 == 0) await ads.maybeShowInterstitial();
   }
 
   /// Play an SFX if sound is on. Called by gameplay code.

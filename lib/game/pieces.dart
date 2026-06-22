@@ -72,7 +72,7 @@ class PieceCatalog {
   static BlockPiece buildPiece(int shapeId, {required Random rng}) {
     final raw = _shapes[shapeId];
     final cells = raw.map((p) => Cell(p[0], p[1])).toList(growable: false);
-    final color = CoreColors.blockColors[rng.nextInt(CoreColors.blockColors.length)];
+    final color = CoreColors.active[rng.nextInt(CoreColors.active.length)];
     return BlockPiece(shapeId: shapeId, cells: cells, color: color);
   }
 

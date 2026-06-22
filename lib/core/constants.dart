@@ -29,6 +29,8 @@ class K {
   static const String kSound     = 'pb_sound';
   static const String kHaptics   = 'pb_haptics';
   static const String kFirstRun  = 'pb_first_run';
+  static const String kUnlockedSkins = 'pb_unlocked_skins';
+  static const String kSelectedSkin  = 'pb_selected_skin';
 }
 
 /// Nusantara / batik-inspired palette. Warm earth tones (sogan brown, indigo,

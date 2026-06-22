@@ -150,7 +150,10 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   best: app.highScore,
                   isNewBest: gc.isNewBest,
                   onRevive: () => _revive(context, gc, app),
-                  onRestart: () => gc.newGame(),
+                  onRestart: () async {
+                    await app.maybeShowInterstitial();
+                    gc.newGame();
+                  },
                   onHome: () => Navigator.of(context).maybePop(),
                 ),
               if (_showHowTo)
