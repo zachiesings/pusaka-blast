@@ -32,6 +32,7 @@ class AppState extends ChangeNotifier {
     _unlockedSkins = _prefs.unlockedSkins.toSet()..add('klasik');
     _selectedSkin = _prefs.selectedSkin;
     CoreColors.active = SkinCatalog.byId(_selectedSkin).colors;
+    _loadPowerups();
   }
 
   bool get music => _music;
@@ -45,6 +46,45 @@ class AppState extends ChangeNotifier {
 
   void startHomeMusic() => audio.startBgm();
   void stopHomeMusic() => audio.stopBgm();
+
+  // ----- Power-ups -----
+  int _hammers = 0, _shuffles = 0;
+  int get hammers => _hammers;
+  int get shuffles => _shuffles;
+  void _loadPowerups() {
+    _hammers = _prefs.hammers;
+    _shuffles = _prefs.shuffles;
+  }
+
+  /// Buy a power-up (kind: 'hammer'|'shuffle') with coins. Returns false if poor.
+  bool buyPowerup(String kind) {
+    if (!spendCoins(40)) return false;
+    if (kind == 'hammer') {
+      _hammers++;
+      _prefs.setHammers(_hammers);
+    } else {
+      _shuffles++;
+      _prefs.setShuffles(_shuffles);
+    }
+    notifyListeners();
+    return true;
+  }
+
+  bool consumeHammer() {
+    if (_hammers <= 0) return false;
+    _hammers--;
+    _prefs.setHammers(_hammers);
+    notifyListeners();
+    return true;
+  }
+
+  bool consumeShuffle() {
+    if (_shuffles <= 0) return false;
+    _shuffles--;
+    _prefs.setShuffles(_shuffles);
+    notifyListeners();
+    return true;
+  }
 
   // ----- Batik skins -----
   String get selectedSkin => _selectedSkin;

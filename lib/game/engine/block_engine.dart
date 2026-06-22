@@ -39,6 +39,14 @@ class BlockEngine {
   Color? cellColor(int col, int row) => _grid[row][col];
   bool isFilled(int col, int row) => _grid[row][col] != null;
 
+  /// Power-up: clear a single cell (hammer). Returns true if a cell was cleared.
+  bool clearCell(int col, int row) {
+    if (col < 0 || col >= size || row < 0 || row >= size) return false;
+    if (_grid[row][col] == null) return false;
+    _grid[row][col] = null;
+    return true;
+  }
+
   /// Snapshot for persistence/restore (row-major color ints, -1 empty).
   List<int> serialize() {
     final out = <int>[];

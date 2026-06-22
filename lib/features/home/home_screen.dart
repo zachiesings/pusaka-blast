@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
+import '../../game/game_mode.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../widgets/batik.dart';
@@ -21,6 +22,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  BlastMode _mode = BlastMode.klasik;
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChangeNotifierProvider<GameController>(
-          create: (_) => GameController(app)..newGame(),
+          create: (_) => GameController(app, mode: _mode)..newGame(),
           child: const GameScreen(),
         ),
       ),
@@ -89,6 +92,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 const Spacer(),
                 _StatRow(best: app.highScore, coins: app.coins),
                 const Spacer(),
+                // Mode selector
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: BlastMode.values.map((m) {
+                    final sel = _mode == m;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _mode = m),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: sel ? Palette.gold : Palette.panel.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: sel ? Palette.gold : Palette.gold.withOpacity(0.25)),
+                          ),
+                          child: Text(m.label,
+                              style: TextStyle(
+                                  color: sel ? Palette.ink : Palette.cream,
+                                  fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
                 GradientButton(
                   label: 'MAIN',
                   icon: Icons.play_arrow_rounded,

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../core/constants.dart';
 import '../game/engine/block_engine.dart';
+import '../game/game_mode.dart';
 import '../game/models/block_piece.dart';
 import '../game/models/cell.dart';
 import '../game/pieces.dart';
@@ -13,6 +15,7 @@ import 'app_state.dart';
 /// combo. Persists best score / coins through [AppState].
 class GameController extends ChangeNotifier {
   final AppState app;
+  final BlastMode mode;
   final BlockEngine engine = BlockEngine(size: K.gridSize);
   final Random _rng = Random();
 
@@ -25,12 +28,14 @@ class GameController extends ChangeNotifier {
   bool isGameOver = false;
   bool isNewBest = false;
 
-  /// Cells removed by the most recent line clear + a monotonic counter the UI
-  /// watches to trigger the clear animation exactly once per event.
+  int timeLeft = 0;     // seconds remaining (time-attack)
+  bool hammerArmed = false; // next board tap clears a cell
+  Timer? _timer;
+
   List<Cell> lastClearedCells = const [];
   int clearEvent = 0;
 
-  GameController(this.app);
+  GameController(this.app, {this.mode = BlastMode.klasik});
 
   void newGame() {
     engine.reset();
@@ -40,8 +45,55 @@ class GameController extends ChangeNotifier {
     lastLines = 0;
     isGameOver = false;
     isNewBest = false;
+    hammerArmed = false;
     _refillTray();
+    _timer?.cancel();
+    if (mode.timed) {
+      timeLeft = mode.seconds;
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (isGameOver) return;
+        timeLeft--;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          _endGame();
+        }
+        notifyListeners();
+      });
+    }
     notifyListeners();
+  }
+
+  // ----- Power-ups -----
+  void useShuffle() {
+    if (isGameOver || !app.consumeShuffle()) return;
+    _refillTray();
+    app.playSfx(Sfx.place);
+    notifyListeners();
+  }
+
+  void armHammer() {
+    if (isGameOver || app.hammers <= 0) return;
+    hammerArmed = !hammerArmed;
+    notifyListeners();
+  }
+
+  void useHammerAt(int col, int row) {
+    if (!hammerArmed) return;
+    if (engine.clearCell(col, row) && app.consumeHammer()) {
+      app.playSfx(Sfx.clear);
+      _haptic(HapticFeedbackLevel.medium);
+    }
+    hammerArmed = false;
+    isGameOver = false; // a cleared cell may re-open moves
+    notifyListeners();
+  }
+
+  void _endGame() {
+    if (isGameOver) return;
+    isGameOver = true;
+    _timer?.cancel();
+    isNewBest = app.submitScore(score);
+    app.playSfx(Sfx.gameover);
   }
 
   void _refillTray() {
@@ -95,11 +147,7 @@ class GameController extends ChangeNotifier {
     final remaining = tray.whereType<BlockPiece>();
     if (remaining.isEmpty) return; // about to refill
     final anyFits = remaining.any(engine.hasAnyPlacement);
-    if (!anyFits) {
-      isGameOver = true;
-      isNewBest = app.submitScore(score);
-      app.playSfx(Sfx.gameover);
-    }
+    if (!anyFits) _endGame();
   }
 
   /// Ad-rewarded revive: wipe the board (keep the score) and continue. The
@@ -108,8 +156,15 @@ class GameController extends ChangeNotifier {
     engine.reset();
     combo = 0;
     isGameOver = false;
+    if (mode.timed && timeLeft <= 0) timeLeft = 30; // give time back on revive
     _refillTray();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _haptic(HapticFeedbackLevel level) {

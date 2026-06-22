@@ -33,4 +33,9 @@ class Prefs {
 
   String get selectedSkin => _p.getString(K.kSelectedSkin) ?? 'klasik';
   Future<void> setSelectedSkin(String id) => _p.setString(K.kSelectedSkin, id);
+
+  int get hammers => _p.getInt(K.kHammers) ?? 1;
+  Future<void> setHammers(int v) => _p.setInt(K.kHammers, v);
+  int get shuffles => _p.getInt(K.kShuffles) ?? 1;
+  Future<void> setShuffles(int v) => _p.setInt(K.kShuffles, v);
 }

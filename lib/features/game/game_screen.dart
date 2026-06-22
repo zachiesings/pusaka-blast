@@ -139,10 +139,23 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
             children: [
               Column(
                 children: [
-                  _Hud(score: gc.score, best: app.highScore, combo: gc.combo, coins: app.coins),
+                  _Hud(
+                    score: gc.score,
+                    best: app.highScore,
+                    combo: gc.combo,
+                    coins: app.coins,
+                    timeLeft: gc.mode.timed ? gc.timeLeft : null,
+                  ),
                   Expanded(child: _buildBoard(gc)),
                   _buildTray(gc),
-                  const SizedBox(height: 12),
+                  _PowerupBar(
+                    hammers: app.hammers,
+                    shuffles: app.shuffles,
+                    hammerArmed: gc.hammerArmed,
+                    onHammer: () => app.hammers > 0 ? gc.armHammer() : app.buyPowerup('hammer'),
+                    onShuffle: () => app.shuffles > 0 ? gc.useShuffle() : app.buyPowerup('shuffle'),
+                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
               if (gc.isGameOver)
@@ -193,6 +206,19 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     repaintTick: _tick + gc.score,
                   ),
                 ),
+                if (gc.hammerArmed)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: (d) {
+                      final box = _boardKey.currentContext?.findRenderObject() as RenderBox?;
+                      if (box == null) return;
+                      final local = box.globalToLocal(d.globalPosition);
+                      final col = (local.dx / _boardCell).floor();
+                      final row = (local.dy / _boardCell).floor();
+                      gc.useHammerAt(col, row);
+                      setState(() => _tick++);
+                    },
+                  ),
                 IgnorePointer(
                   child: AnimatedBuilder(
                     animation: _fx,
@@ -276,7 +302,13 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
 class _Hud extends StatelessWidget {
   final int score, best, combo, coins;
-  const _Hud({required this.score, required this.best, required this.combo, required this.coins});
+  final int? timeLeft;
+  const _Hud(
+      {required this.score,
+      required this.best,
+      required this.combo,
+      required this.coins,
+      this.timeLeft});
 
   @override
   Widget build(BuildContext context) {
@@ -292,6 +324,13 @@ class _Hud extends StatelessWidget {
               ),
               MascotView(size: 50, mood: combo > 1 ? MascotMood.cheer : MascotMood.idle),
               const Spacer(),
+              if (timeLeft != null) ...[
+                _Pill(
+                    icon: Icons.timer_rounded,
+                    label: '${timeLeft}s',
+                    color: timeLeft! <= 10 ? Palette.maroon : Palette.coral),
+                const SizedBox(width: 8),
+              ],
               _Pill(icon: Icons.monetization_on, label: '$coins', color: Palette.gold),
               const SizedBox(width: 8),
               _Pill(icon: Icons.emoji_events, label: '$best', color: Palette.cream),
@@ -347,6 +386,69 @@ class _Pill extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
       ]),
+    );
+  }
+}
+
+class _PowerupBar extends StatelessWidget {
+  final int hammers, shuffles;
+  final bool hammerArmed;
+  final VoidCallback onHammer, onShuffle;
+  const _PowerupBar({
+    required this.hammers,
+    required this.shuffles,
+    required this.hammerArmed,
+    required this.onHammer,
+    required this.onShuffle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget btn(IconData icon, String label, int count, bool active, VoidCallback onTap) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: active ? Palette.gold.withOpacity(0.22) : Palette.panel.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: active ? Palette.gold : Palette.gold.withOpacity(0.25), width: active ? 2 : 1),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: Palette.gold, size: 20),
+            const SizedBox(width: 7),
+            Text(label, style: const TextStyle(color: Palette.cream, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 8),
+            if (count > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                    color: Palette.gold, borderRadius: BorderRadius.circular(10)),
+                child: Text('$count',
+                    style: const TextStyle(
+                        color: Palette.ink, fontWeight: FontWeight.w900, fontSize: 12)),
+              )
+            else
+              Row(mainAxisSize: MainAxisSize.min, children: const [
+                Icon(Icons.add, color: Palette.coral, size: 14),
+                Icon(Icons.monetization_on, color: Palette.coral, size: 13),
+                Text(' 40', style: TextStyle(color: Palette.coral, fontWeight: FontWeight.w700, fontSize: 12)),
+              ]),
+          ]),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          btn(Icons.gavel_rounded, 'Palu', hammers, hammerArmed, onHammer),
+          btn(Icons.shuffle_rounded, 'Acak', shuffles, false, onShuffle),
+        ],
+      ),
     );
   }
 }

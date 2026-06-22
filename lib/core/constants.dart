@@ -32,6 +32,9 @@ class K {
   static const String kFirstRun  = 'pb_first_run';
   static const String kUnlockedSkins = 'pb_unlocked_skins';
   static const String kSelectedSkin  = 'pb_selected_skin';
+  static const String kHammers   = 'pb_hammers';
+  static const String kShuffles  = 'pb_shuffles';
+  static const int powerupCost   = 40; // coins per power-up
 }
 
 /// Nusantara / batik-inspired palette. Warm earth tones (sogan brown, indigo,
