@@ -217,4 +217,16 @@ class AppState extends ChangeNotifier {
   }
 
   void markOnboarded() => _prefs.setFirstRunDone();
+
+  // ----- Lifetime stats -----
+  int get gamesPlayed => _prefs.gamesPlayed;
+  int get totalLines => _prefs.totalLines;
+  void recordGameOver() {
+    _prefs.setGamesPlayed(_prefs.gamesPlayed + 1);
+    notifyListeners();
+  }
+
+  void recordLines(int n) {
+    if (n > 0) _prefs.setTotalLines(_prefs.totalLines + n);
+  }
 }

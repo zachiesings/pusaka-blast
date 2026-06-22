@@ -45,4 +45,9 @@ class Prefs {
   Future<void> setLastClaimDay(int v) => _p.setInt(K.kLastClaim, v);
   int get streak => _p.getInt(K.kStreak) ?? 0;
   Future<void> setStreak(int v) => _p.setInt(K.kStreak, v);
+
+  int get gamesPlayed => _p.getInt(K.kGames) ?? 0;
+  Future<void> setGamesPlayed(int v) => _p.setInt(K.kGames, v);
+  int get totalLines => _p.getInt(K.kTotalLines) ?? 0;
+  Future<void> setTotalLines(int v) => _p.setInt(K.kTotalLines, v);
 }

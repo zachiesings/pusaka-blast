@@ -4,6 +4,7 @@ import '../../core/constants.dart';
 import '../../state/app_state.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/soft_card.dart';
+import '../stats/stats_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -57,6 +58,25 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const StatsScreen())),
+                child: SoftCard(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.bar_chart_rounded, color: Palette.gold),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Text('Statistik',
+                            style: TextStyle(
+                                color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: Palette.cream.withOpacity(0.5)),
+                    ],
+                  ),
                 ),
               ),
             ],

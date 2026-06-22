@@ -37,6 +37,8 @@ class K {
   static const String kBombs     = 'pb_bombs';
   static const String kLastClaim = 'pb_last_claim_day';
   static const String kStreak    = 'pb_daily_streak';
+  static const String kGames     = 'pb_games_played';
+  static const String kTotalLines = 'pb_total_lines';
   static const int powerupCost   = 40; // coins per power-up
 }
 

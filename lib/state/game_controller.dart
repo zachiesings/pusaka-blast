@@ -109,6 +109,7 @@ class GameController extends ChangeNotifier {
     isGameOver = true;
     _timer?.cancel();
     isNewBest = app.submitScore(score);
+    app.recordGameOver();
     app.playSfx(Sfx.gameover);
   }
 
@@ -144,6 +145,7 @@ class GameController extends ChangeNotifier {
       combo++;
       lastClearedCells = result.clearedCells;
       clearEvent++;
+      app.recordLines(result.linesCleared);
       app.addCoins(result.linesCleared); // coins fund the "double coins" reward
       lastPerfect = result.boardCleared;
       if (result.boardCleared) {
