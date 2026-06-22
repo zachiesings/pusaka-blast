@@ -462,8 +462,19 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
 
   Widget _buildTray(GameController gc) {
     final cell = (_boardCell * 0.62).clamp(20.0, 44.0);
-    return SizedBox(
+    return Container(
       height: cell * 3.4,
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Palette.panel.withOpacity(0.7), Palette.bg1.withOpacity(0.5)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Palette.gold.withOpacity(0.3), width: 1.2),
+        boxShadow: Palette.glow(Palette.gold, blur: 16, a: 0.12),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.center,
