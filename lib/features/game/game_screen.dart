@@ -713,10 +713,17 @@ class _PowerupBar extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
-            color: active ? Palette.gold.withOpacity(0.22) : Palette.panel.withOpacity(0.6),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: active
+                  ? [Palette.gold.withOpacity(0.4), Palette.gold.withOpacity(0.18)]
+                  : [Palette.panel.withOpacity(0.75), Palette.bg1.withOpacity(0.6)],
+            ),
             borderRadius: BorderRadius.circular(16),
+            boxShadow: active ? Palette.glow(Palette.gold, blur: 14, a: 0.4) : null,
             border: Border.all(
-                color: active ? Palette.gold : Palette.gold.withOpacity(0.25), width: active ? 2 : 1),
+                color: active ? Palette.gold : Palette.gold.withOpacity(0.3), width: active ? 2 : 1),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(icon, color: Palette.gold, size: 20),
