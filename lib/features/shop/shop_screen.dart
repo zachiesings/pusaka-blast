@@ -28,7 +28,40 @@ class ShopScreen extends StatelessWidget {
       ),
       body: BatikBackground(
         child: SafeArea(
-          child: ListView.separated(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: GestureDetector(
+                  onTap: () async {
+                    final ok = await app.rewardedCoins();
+                    if (ok && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('+60 koin! 🎉')),
+                      );
+                    }
+                  },
+                  child: SoftCard(
+                    glow: Palette.gold,
+                    child: Row(
+                      children: const [
+                        Icon(Icons.smart_display_rounded, color: Palette.gold, size: 26),
+                        SizedBox(width: 14),
+                        Expanded(
+                          child: Text('Koin Gratis',
+                              style: TextStyle(
+                                  color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                        ),
+                        Icon(Icons.add, color: Palette.gold, size: 16),
+                        Text('60 ', style: TextStyle(color: Palette.gold, fontWeight: FontWeight.w900)),
+                        Icon(Icons.monetization_on, color: Palette.gold, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.separated(
             padding: const EdgeInsets.all(20),
             itemCount: SkinCatalog.all.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
@@ -52,6 +85,9 @@ class ShopScreen extends StatelessWidget {
                 onSelect: () => app.selectSkin(skin.id),
               );
             },
+                ),
+              ),
+            ],
           ),
         ),
       ),

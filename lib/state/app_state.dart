@@ -105,6 +105,13 @@ class AppState extends ChangeNotifier {
     return ok;
   }
 
+  /// Watch a rewarded ad for +60 coins. Returns true if granted.
+  Future<bool> rewardedCoins() async {
+    final ok = await ads.showRewarded(RewardKind.bonusCoins);
+    if (ok) addCoins(60);
+    return ok;
+  }
+
   // ----- Daily reward -----
   int get _today => DateTime.now().millisecondsSinceEpoch ~/ 86400000;
   bool get dailyClaimable => _prefs.lastClaimDay != _today;
