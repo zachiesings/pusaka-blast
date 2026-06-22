@@ -538,22 +538,46 @@ class _Hud extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
-            child: Text(
-              '$score',
-              key: ValueKey<int>(score),
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                color: Palette.cream,
-                height: 1,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const _Diamond(),
+              const SizedBox(width: 14),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: ShaderMask(
+                  key: ValueKey<int>(score),
+                  shaderCallback: (b) => Palette.brand.createShader(b),
+                  child: Text(
+                    '$score',
+                    style: const TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1,
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(width: 14),
+              const _Diamond(),
+            ],
+          ),
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            width: 120,
+            height: 2,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [
+                Palette.gold.withOpacity(0),
+                Palette.gold.withOpacity(0.6),
+                Palette.gold.withOpacity(0),
+              ]),
             ),
           ),
           SizedBox(
-            height: 22,
+            height: 20,
             child: combo > 1
                 ? Text('COMBO x$combo',
                     style: const TextStyle(
@@ -589,6 +613,38 @@ class _Pill extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// Small batik diamond ornament that flanks the score.
+class _Diamond extends StatelessWidget {
+  const _Diamond();
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox(width: 12, height: 12, child: CustomPaint(painter: _DiamondPainter()));
+}
+
+class _DiamondPainter extends CustomPainter {
+  const _DiamondPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final p = Path()
+      ..moveTo(c.dx, 0)
+      ..lineTo(size.width, c.dy)
+      ..lineTo(c.dx, size.height)
+      ..lineTo(0, c.dy)
+      ..close();
+    canvas.drawPath(p, Paint()..color = Palette.gold.withOpacity(0.8));
+    canvas.drawPath(
+        p,
+        Paint()
+          ..color = Palette.goldLt
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
 class _PowerupBar extends StatelessWidget {
