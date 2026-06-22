@@ -7,6 +7,7 @@ import '../../widgets/batik.dart';
 import '../../widgets/banner_ad.dart';
 import '../../widgets/gradient_button.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/soft_card.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
@@ -81,14 +82,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 // Animated mascot
                 const MascotView(size: 150, mood: MascotMood.idle),
                 const SizedBox(height: 8),
-                const Text('PUSAKA BLAST',
-                    style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        color: Palette.cream)),
-                const Text('Teka-teki balok rasa Nusantara',
-                    style: TextStyle(color: Palette.goldSoft)),
+                const GoldTitle('PUSAKA BLAST', size: 36, letterSpacing: 2),
+                const SizedBox(height: 4),
+                Text('Teka-teki balok rasa Nusantara',
+                    style: TextStyle(color: Palette.cream.withOpacity(0.6), letterSpacing: 0.5)),
                 const Spacer(),
                 _StatRow(best: app.highScore, coins: app.coins),
                 const Spacer(),
@@ -164,24 +161,26 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget card(IconData icon, String label, String value, Color c) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-          decoration: BoxDecoration(
-            color: Palette.panel,
-            borderRadius: BorderRadius.circular(18),
-          ),
+    Widget card(IconData icon, String label, String value, Color c) => SoftCard(
+          glow: c,
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
           child: Column(children: [
-            Icon(icon, color: c),
+            Icon(icon, color: c, size: 26),
             const SizedBox(height: 6),
-            Text(value, style: TextStyle(color: c, fontSize: 22, fontWeight: FontWeight.w900)),
-            Text(label, style: const TextStyle(color: Palette.goldSoft, fontSize: 12)),
+            Text(value, style: TextStyle(color: c, fontSize: 24, fontWeight: FontWeight.w800)),
+            Text(label.toUpperCase(),
+                style: TextStyle(
+                    color: Palette.cream.withOpacity(0.55),
+                    fontSize: 11,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w700)),
           ]),
         );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        card(Icons.emoji_events, 'Terbaik', '$best', Palette.cream),
-        card(Icons.monetization_on, 'Koin', '$coins', Palette.gold),
+        card(Icons.emoji_events_rounded, 'Terbaik', '$best', Palette.gold),
+        card(Icons.monetization_on_rounded, 'Koin', '$coins', Palette.coral),
       ],
     );
   }
