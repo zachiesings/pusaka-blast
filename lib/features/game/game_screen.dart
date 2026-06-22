@@ -4,6 +4,7 @@ import '../../core/constants.dart';
 import '../../services/ads/ads_service.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
+import '../../game/game_mode.dart';
 import '../../game/models/cell.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/mascot.dart';
@@ -152,8 +153,20 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     hammers: app.hammers,
                     shuffles: app.shuffles,
                     hammerArmed: gc.hammerArmed,
-                    onHammer: () => app.hammers > 0 ? gc.armHammer() : app.buyPowerup('hammer'),
-                    onShuffle: () => app.shuffles > 0 ? gc.useShuffle() : app.buyPowerup('shuffle'),
+                    onHammer: () {
+                      if (app.hammers > 0) {
+                        gc.armHammer();
+                      } else {
+                        app.buyPowerup('hammer');
+                      }
+                    },
+                    onShuffle: () {
+                      if (app.shuffles > 0) {
+                        gc.useShuffle();
+                      } else {
+                        app.buyPowerup('shuffle');
+                      }
+                    },
                   ),
                   const SizedBox(height: 10),
                 ],
