@@ -4,6 +4,7 @@ import '../../core/constants.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../widgets/batik.dart';
+import '../../widgets/banner_ad.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
@@ -115,6 +116,8 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 const Spacer(flex: 2),
+                const Center(child: BannerAdBar()),
+                const SizedBox(height: 6),
               ],
             ),
           ),

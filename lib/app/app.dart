@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
-import '../features/home/home_screen.dart';
+import '../features/splash/splash_screen.dart';
 
 class PusakaBlastApp extends StatelessWidget {
   final AppState appState;
@@ -16,7 +16,7 @@ class PusakaBlastApp extends StatelessWidget {
         title: 'Pusaka Blast',
         debugShowCheckedModeBanner: false,
         theme: buildTheme(),
-        home: const HomeScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

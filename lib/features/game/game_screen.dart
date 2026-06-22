@@ -296,13 +296,18 @@ class _Hud extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            '$score',
-            style: const TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
-              color: Palette.cream,
-              height: 1,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+            child: Text(
+              '$score',
+              key: ValueKey<int>(score),
+              style: const TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w900,
+                color: Palette.cream,
+                height: 1,
+              ),
             ),
           ),
           SizedBox(
