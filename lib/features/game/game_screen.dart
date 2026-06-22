@@ -6,6 +6,7 @@ import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../game/models/cell.dart';
 import '../../widgets/batik.dart';
+import '../../widgets/mascot.dart';
 import 'widgets/board_view.dart';
 import 'widgets/clear_fx.dart';
 import 'widgets/piece_widget.dart';
@@ -454,6 +455,8 @@ class _GameOverOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            MascotView(size: 110, mood: isNewBest ? MascotMood.cheer : MascotMood.sad),
+            const SizedBox(height: 4),
             Text(isNewBest ? 'Rekor Baru! 🎉' : 'Permainan Selesai',
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Palette.cream)),
             const SizedBox(height: 16),

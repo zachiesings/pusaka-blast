@@ -5,6 +5,7 @@ import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/banner_ad.dart';
+import '../../widgets/mascot.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
@@ -76,18 +77,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const Spacer(),
-                // Logo mark
-                Container(
-                  width: 110,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    color: Palette.panel,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Palette.gold, width: 2),
-                  ),
-                  child: const Icon(Icons.grid_view_rounded, size: 60, color: Palette.gold),
-                ),
-                const SizedBox(height: 20),
+                // Animated mascot
+                const MascotView(size: 150, mood: MascotMood.idle),
+                const SizedBox(height: 8),
                 const Text('PUSAKA BLAST',
                     style: TextStyle(
                         fontSize: 34,
