@@ -33,8 +33,9 @@ class DisplayText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
-      fontFamily: 'Cinzel',
+      fontFamily: 'Jakarta',
       fontVariations: [FontVariation('wght', weight)],
+      fontWeight: FontWeight.values[((weight ~/ 100).clamp(1, 9)) - 1],
       fontSize: size,
       letterSpacing: letterSpacing,
       height: 1.08,
@@ -42,7 +43,7 @@ class DisplayText extends StatelessWidget {
       shadows: emboss
           ? const [
               Shadow(color: Color(0xCC000000), blurRadius: 8, offset: Offset(0, 3)),
-              Shadow(color: Color(0x33FCD675), blurRadius: 16, offset: Offset(0, 0)),
+              Shadow(color: Color(0x661FE3FF), blurRadius: 18, offset: Offset(0, 0)),
             ]
           : null,
     );

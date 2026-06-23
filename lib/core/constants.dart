@@ -49,41 +49,43 @@ class K {
 class Palette {
   Palette._();
 
-  // === "PENDOPO EMAS" — warm, regal golden-batik identity (distinct from Tiles) ===
-  static const Color bg0      = Color(0xFF1A1108); // deepest warm sogan night
-  static const Color bg1      = Color(0xFF2C1C0C); // espresso batik
-  static const Color panel    = Color(0xFF3A2614); // raised teak wood panel
-  static const Color panelHi  = Color(0xFF4E331A); // highlighted wood
-  static const Color gridCell = Color(0xFF2E1F10); // empty board cell
-  static const Color gridLine = Color(0xFF53381E);
+  // === "NEON GRID" — dark cyber-arcade identity (distinct from Tiles' batik) ===
+  // Same field NAMES kept (gold = hero accent, cream = text, etc.) so every
+  // screen recolors automatically; only the VALUES changed to neon.
+  static const Color bg0      = Color(0xFF07070D); // deepest void black
+  static const Color bg1      = Color(0xFF0C0D18); // night blue-black
+  static const Color panel    = Color(0xFF13162A); // glassy dark panel
+  static const Color panelHi  = Color(0xFF1E2440); // raised glass / hover
+  static const Color gridCell = Color(0xFF10131F); // empty board cell
+  static const Color gridLine = Color(0xFF2B3360); // faint neon grid line
 
-  static const Color gold     = Color(0xFFF2B73C); // prada gold (hero)
-  static const Color goldLt   = Color(0xFFFCD675);
-  static const Color goldSoft = Color(0xFFC8923A);
-  static const Color cream    = Color(0xFFF7EFE2); // kuning gading
-  static const Color ink      = Color(0xFF1A1108);
+  static const Color gold     = Color(0xFF1FE3FF); // electric cyan (hero accent)
+  static const Color goldLt   = Color(0xFF8BF4FF); // light cyan glow
+  static const Color goldSoft = Color(0xFF16A6C4); // dim cyan
+  static const Color cream    = Color(0xFFEAF2FF); // cool white text
+  static const Color ink      = Color(0xFF06080F); // near-black (on bright btns)
 
-  // warm accents
-  static const Color coral    = Color(0xFFE8744C); // senja terracotta
-  static const Color maroon   = Color(0xFFB23A4E); // marun
-  static const Color jade     = Color(0xFF2FA987); // gamelan jade
+  // neon accents
+  static const Color coral    = Color(0xFFFF3DAE); // neon magenta
+  static const Color maroon   = Color(0xFFFF2E63); // hot pink-red
+  static const Color jade     = Color(0xFF9DFF3D); // neon lime
 
   static const LinearGradient brand = LinearGradient(
-    colors: [goldLt, gold, coral],
+    colors: [goldLt, Color(0xFFB14DFF), coral], // cyan → violet → magenta sweep
     begin: Alignment.topLeft, end: Alignment.bottomRight,
   );
 
   static List<BoxShadow> glow(Color c, {double blur = 26, double y = 10, double a = 0.5}) =>
       [BoxShadow(color: c.withOpacity(a), blurRadius: blur, offset: Offset(0, y))];
 
-  // Block colors — rich, saturated, warm-led batik tones.
+  // Block colors — vivid neon set (cyber arcade).
   static const List<Color> blockColors = <Color>[
-    Color(0xFFE8744C), // terracotta
-    Color(0xFFF2B73C), // prada gold
-    Color(0xFF2FA987), // jade
-    Color(0xFFB23A4E), // marun
-    Color(0xFFD98A2B), // amber sogan
-    Color(0xFF8C5BA6), // plum
-    Color(0xFF3F8C7A), // teal tua
+    Color(0xFF1FE3FF), // cyan
+    Color(0xFFFF3DAE), // magenta
+    Color(0xFF9DFF3D), // lime
+    Color(0xFFB14DFF), // violet
+    Color(0xFFFFD23D), // electric yellow
+    Color(0xFFFF6B35), // neon orange
+    Color(0xFF3D8BFF), // electric blue
   ];
 }

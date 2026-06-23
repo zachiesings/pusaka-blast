@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../core/constants.dart';
 
-/// A living in-game backdrop for Pusaka Blast — a Javanese pendopo at night:
-/// drifting kawung batik motifs, a swaying wayang *gunungan* silhouette, rising
-/// gold embers and soft pendopo light. Self-animated via a [Ticker]; cheap
-/// enough to sit behind the board every frame.
+/// A living in-game backdrop for Pusaka Blast — a NEON GRID arcade scene:
+/// a synthwave perspective grid marching toward a glowing horizon, drifting
+/// neon star particles and soft cyan/magenta glow orbs. Self-animated via a
+/// [Ticker]; cheap enough to sit behind the board every frame.
 class GameBackdrop extends StatefulWidget {
   const GameBackdrop({super.key});
 
@@ -47,110 +47,91 @@ class _BackdropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height;
+    final horizon = h * 0.46;
 
-    // 1) warm night gradient
+    // 1) deep void gradient
     canvas.drawRect(
       Offset.zero & size,
       Paint()
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Palette.bg0, Palette.bg1, Color(0xFF120A04)],
+          colors: [Palette.bg0, Palette.bg1, Color(0xFF0A0A16)],
           stops: [0.0, 0.55, 1.0],
         ).createShader(Offset.zero & size),
     );
 
-    // 2) soft pendopo light rays from the top
-    for (var i = 0; i < 4; i++) {
-      final cx = w * (0.2 + 0.2 * i);
-      final sway = math.sin(t * 0.4 + i) * w * 0.04;
-      final path = Path()
-        ..moveTo(cx, -10)
-        ..lineTo(cx - w * 0.12 + sway, h * 0.75)
-        ..lineTo(cx + w * 0.12 + sway, h * 0.75)
-        ..close();
-      canvas.drawPath(
-        path,
-        Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Palette.gold.withOpacity(0.05), Palette.gold.withOpacity(0.0)],
-          ).createShader(Rect.fromLTWH(0, 0, w, h)),
-      );
-    }
-
-    // 3) drifting kawung batik motifs (parallax, wrap)
-    final motif = Paint()
-      ..color = Palette.gold.withOpacity(0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    for (var i = 0; i < 5; i++) {
-      final r = w * (0.16 + 0.05 * (i % 3));
-      final speed = 8 + i * 3.0;
-      final x = (w * 0.5 + i * 137.0 + t * speed) % (w + 2 * r) - r;
-      final y = (h * (0.18 + 0.16 * i) + math.sin(t * 0.3 + i) * 12);
-      _kawung(canvas, Offset(x, y), r, motif);
-    }
-
-    // 4) swaying gunungan (wayang mountain) silhouette at bottom-centre
-    canvas.save();
-    canvas.translate(w * 0.5, h);
-    canvas.rotate(math.sin(t * 0.5) * 0.03);
-    _gunungan(canvas, w * 0.34, h * 0.5);
-    canvas.restore();
-
-    // 5) rising gold embers
-    final ember = Paint()..color = Palette.goldLt;
-    for (var i = 0; i < 20; i++) {
-      final seed = i * 0.618;
-      final speed = 14 + (i % 5) * 6.0;
-      final y = h - ((t * speed + i * 90.0) % (h + 40)) + 20;
-      final x = w * ((seed + 0.12 * math.sin(t * 0.6 + i)) % 1.0);
-      final tw = 0.4 + 0.6 * (0.5 + 0.5 * math.sin(t * 2 + i));
-      canvas.drawCircle(Offset(x, y), 1.4 + (i % 3) * 0.5,
-          ember..color = Palette.goldLt.withOpacity(0.35 * tw));
-    }
-  }
-
-  void _kawung(Canvas canvas, Offset c, double r, Paint p) {
-    // four-petal kawung rosette
-    for (final a in [0, 1, 2, 3]) {
-      final ang = a * math.pi / 2;
-      final oc = c + Offset(math.cos(ang), math.sin(ang)) * r * 0.5;
-      canvas.drawOval(
-        Rect.fromCenter(center: oc, width: r * 0.7, height: r * 1.1)
-            .shift(Offset.zero),
-        p,
-      );
-    }
-    canvas.drawCircle(c, r * 0.18, p);
-  }
-
-  void _gunungan(Canvas canvas, double bw, double bh) {
-    // leaf-shaped wayang mountain, pointing up, dark with a faint gold edge
-    final path = Path()
-      ..moveTo(0, -bh)
-      ..cubicTo(bw * 0.9, -bh * 0.7, bw * 0.7, -bh * 0.15, bw * 0.5, 0)
-      ..lineTo(-bw * 0.5, 0)
-      ..cubicTo(-bw * 0.7, -bh * 0.15, -bw * 0.9, -bh * 0.7, 0, -bh)
-      ..close();
-    canvas.drawPath(path, Paint()..color = const Color(0xFF0E0803).withOpacity(0.85));
-    canvas.drawPath(
-      path,
+    // 2) soft cyan/magenta sky glow + glowing horizon line
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, w, horizon),
       Paint()
-        ..color = Palette.gold.withOpacity(0.18)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6,
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Palette.coral.withOpacity(0.05), Palette.gold.withOpacity(0.10)],
+        ).createShader(Rect.fromLTWH(0, 0, w, horizon)),
     );
-    // a few inner ornament lines
-    final orn = Paint()
-      ..color = Palette.gold.withOpacity(0.10)
+    canvas.drawLine(
+      Offset(0, horizon),
+      Offset(w, horizon),
+      Paint()
+        ..color = Palette.gold.withOpacity(0.55)
+        ..strokeWidth = 2
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+
+    // 3) synthwave perspective grid below the horizon
+    final cx = w * 0.5;
+    final grid = Paint()
+      ..color = Palette.gold.withOpacity(0.22)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    for (var k = 1; k <= 3; k++) {
-      canvas.drawCircle(Offset(0, -bh * 0.45), bw * 0.12 * k, orn);
+      ..strokeWidth = 1.1;
+    for (var i = -6; i <= 6; i++) {
+      final bx = cx + i * (w * 0.16);
+      canvas.drawLine(Offset(cx + i * (w * 0.02), horizon), Offset(bx, h), grid);
     }
+    for (var i = 0; i < 12; i++) {
+      final p = ((t * 0.15 + i / 12.0) % 1.0);
+      final y = horizon + (h - horizon) * (p * p); // ease → perspective
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(w, y),
+        Paint()
+          ..color = Palette.gold.withOpacity(0.06 + 0.16 * p)
+          ..strokeWidth = 1.1,
+      );
+    }
+
+    // 4) drifting neon star particles in the sky
+    for (var i = 0; i < 26; i++) {
+      final seed = i * 0.618;
+      final x = w * ((seed + 0.04 * math.sin(t * 0.5 + i)) % 1.0);
+      final y = horizon * ((seed * 1.7) % 1.0);
+      final tw = 0.4 + 0.6 * (0.5 + 0.5 * math.sin(t * 2 + i));
+      final c = (i % 3 == 0) ? Palette.coral : (i % 3 == 1) ? Palette.gold : Palette.jade;
+      canvas.drawCircle(
+        Offset(x, y),
+        1.0 + (i % 3) * 0.7,
+        Paint()
+          ..color = c.withOpacity(0.5 * tw)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      );
+    }
+
+    // 5) two soft neon glow orbs drifting
+    _orb(canvas, Offset(w * (0.25 + 0.05 * math.sin(t * 0.3)), horizon * 0.5), w * 0.5, Palette.gold);
+    _orb(canvas, Offset(w * (0.78 + 0.05 * math.cos(t * 0.27)), horizon * 0.35), w * 0.42, Palette.coral);
+  }
+
+  void _orb(Canvas canvas, Offset c, double r, Color col) {
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [col.withOpacity(0.10), col.withOpacity(0.0)],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
   }
 
   @override

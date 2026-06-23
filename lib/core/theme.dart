@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'constants.dart';
 import 'motion.dart';
 
-/// Premium "Pendopo Emas" theme — Plus Jakarta Sans + warm batik tokens.
+/// Premium "Neon Grid" theme — Plus Jakarta Sans + dark cyber-arcade tokens.
 ThemeData buildTheme() {
   const font = 'Jakarta';
   final base = ThemeData.dark(useMaterial3: true);
@@ -26,8 +26,8 @@ ThemeData buildTheme() {
       centerTitle: true,
       foregroundColor: Palette.cream,
       titleTextStyle: TextStyle(
-          fontFamily: 'Cinzel', fontWeight: FontWeight.w700, fontSize: 19,
-          letterSpacing: 1, color: Palette.cream),
+          fontFamily: 'Jakarta', fontWeight: FontWeight.w800, fontSize: 18,
+          letterSpacing: 2, color: Palette.cream),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

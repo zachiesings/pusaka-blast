@@ -6,13 +6,13 @@ class CoreColors {
   CoreColors._();
 
   static const List<Color> blockColors = <Color>[
-    Color(0xFF7A3B2E), // bata — terracotta red
-    Color(0xFF1F4E5F), // indigo nila
-    Color(0xFFB5832E), // sogan kuning
-    Color(0xFF4A6B3A), // daun — leaf green
-    Color(0xFF6E3B5C), // anggur — plum
-    Color(0xFF2E5E6E), // teal pesisir
-    Color(0xFFA84B2A), // tembaga — copper
+    Color(0xFF1FE3FF), // cyan
+    Color(0xFFFF3DAE), // magenta
+    Color(0xFF9DFF3D), // lime
+    Color(0xFFB14DFF), // violet
+    Color(0xFFFFD23D), // electric yellow
+    Color(0xFFFF6B35), // neon orange
+    Color(0xFF3D8BFF), // electric blue
   ];
 
   /// The palette currently in use (set from the selected batik skin). Defaults
