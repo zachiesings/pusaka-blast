@@ -21,8 +21,9 @@ class GameController extends ChangeNotifier {
   final BlockEngine engine = BlockEngine(size: K.gridSize);
   final Random _rng = Random();
 
-  /// Neutral "batik stone" colour used for scattered campaign obstacles.
+  /// Neutral "batik stone" colour used for scattered campaign obstacles + locks.
   static const Color _stone = Color(0xFF5A4636);
+  static const Color _treasureColor = Color(0xFFB5832E);
 
   bool get isCampaign => wave != null;
 
@@ -60,6 +61,7 @@ class GameController extends ChangeNotifier {
   int runClears = 0;    // line-clearing placements this run
   int placements = 0;   // total pieces placed this run
   int wavePerfects = 0; // perfect board-clears this run
+  int runTreasures = 0; // Harta freed this run
   bool waveWon = false; // the campaign objective has been met
   int waveStars = 0;    // stars earned on a win (1..3)
   bool waveFirstClear = false; // win was a brand-new clear (first time)
@@ -84,11 +86,17 @@ class GameController extends ChangeNotifier {
     runClears = 0;
     placements = 0;
     wavePerfects = 0;
+    runTreasures = 0;
     waveWon = false;
     waveStars = 0;
     waveFirstClear = false;
-    if (wave != null && wave!.obstacles > 0) {
-      engine.scatter(wave!.obstacles, _stone, _rng);
+    final w = wave;
+    if (w != null) {
+      if (w.obstacles > 0) engine.scatter(w.obstacles, _stone, _rng);
+      if (w.locks > 0) engine.scatter(w.locks, _stone, _rng, kind: CellKind.locked);
+      if (w.treasures > 0) {
+        engine.scatter(w.treasures, _treasureColor, _rng, kind: CellKind.treasure);
+      }
     }
     _refillTray();
     _timer?.cancel();
@@ -117,6 +125,8 @@ class GameController extends ChangeNotifier {
         return maxCombo;
       case WaveGoal.perfect:
         return wavePerfects;
+      case WaveGoal.treasure:
+        return runTreasures;
       case WaveGoal.survive:
         return placements;
     }
@@ -231,6 +241,10 @@ class GameController extends ChangeNotifier {
       runLines += result.linesCleared;
       runClears++;
       if (result.boardCleared) wavePerfects++;
+      if (result.treasuresCleared > 0) {
+        runTreasures += result.treasuresCleared;
+        app.addCoins(result.treasuresCleared * 2); // Harta also pays out coins
+      }
       lastClearedCells = result.clearedCells;
       clearEvent++;
       // Fill the Berkah meter; when full, light up a x2 streak.

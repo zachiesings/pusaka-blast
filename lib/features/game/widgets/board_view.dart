@@ -92,12 +92,21 @@ class BoardPainter extends CustomPainter {
       }
     }
 
-    // Placed tiles
+    // Placed tiles (+ special Harta / Gembok overlays)
     for (var r = 0; r < n; r++) {
       for (var c = 0; c < n; c++) {
         final color = engine.cellColor(c, r);
         if (color != null) {
-          BatikTile.paint(canvas, Rect.fromLTWH(c * cell, r * cell, cell, cell), color);
+          final rect = Rect.fromLTWH(c * cell, r * cell, cell, cell);
+          BatikTile.paint(canvas, rect, color);
+          final k = engine.kindAt(c, r);
+          if (k == CellKind.treasure) {
+            _treasure(canvas, rect, cell);
+          } else if (k == CellKind.locked) {
+            _lock(canvas, rect, cell, cracked: false);
+          } else if (k == CellKind.cracked) {
+            _lock(canvas, rect, cell, cracked: true);
+          }
         }
       }
     }
@@ -139,6 +148,89 @@ class BoardPainter extends CustomPainter {
             ..strokeWidth = cell * 0.04,
         );
       }
+    }
+  }
+
+  /// Harta — a glinting gold gem set into the tile.
+  void _treasure(Canvas canvas, Rect rect, double cell) {
+    final c = rect.center;
+    final s = cell * 0.26;
+    // soft halo
+    canvas.drawCircle(c, s * 1.5,
+        Paint()..color = Palette.goldLt.withOpacity(0.35)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+    final gem = Path()
+      ..moveTo(c.dx, c.dy - s)
+      ..lineTo(c.dx + s * 0.8, c.dy - s * 0.2)
+      ..lineTo(c.dx + s * 0.5, c.dy + s)
+      ..lineTo(c.dx - s * 0.5, c.dy + s)
+      ..lineTo(c.dx - s * 0.8, c.dy - s * 0.2)
+      ..close();
+    canvas.drawPath(
+      gem,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFF0BE), Palette.gold, Color(0xFFD98A2B)],
+        ).createShader(rect),
+    );
+    canvas.drawPath(
+        gem,
+        Paint()
+          ..color = const Color(0xFF7A4A12)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = cell * 0.025);
+    // facet highlight
+    canvas.drawLine(Offset(c.dx, c.dy - s), Offset(c.dx - s * 0.3, c.dy + s * 0.2),
+        Paint()..color = Colors.white.withOpacity(0.7)..strokeWidth = cell * 0.02);
+  }
+
+  /// Gembok — a forged lock; shows a crack once it has taken its first hit.
+  void _lock(Canvas canvas, Rect rect, double cell, {required bool cracked}) {
+    // darken the tile so locks read as heavy stone
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect.deflate(cell * 0.06), Radius.circular(cell * 0.16)),
+      Paint()..color = Colors.black.withOpacity(cracked ? 0.18 : 0.34),
+    );
+    final c = rect.center;
+    final w = cell * 0.34, h = cell * 0.28;
+    final body = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset(c.dx, c.dy + h * 0.25), width: w, height: h),
+      Radius.circular(cell * 0.06),
+    );
+    canvas.drawRRect(body, Paint()..color = const Color(0xFFCBB37A));
+    canvas.drawRRect(
+        body,
+        Paint()
+          ..color = const Color(0xFF5A4636)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = cell * 0.02);
+    // shackle
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(c.dx, c.dy - h * 0.25), width: w * 0.7, height: h * 0.9),
+      3.14, 3.14, false,
+      Paint()
+        ..color = const Color(0xFFCBB37A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.05
+        ..strokeCap = StrokeCap.round,
+    );
+    // keyhole
+    canvas.drawCircle(Offset(c.dx, c.dy + h * 0.2), cell * 0.03, Paint()..color = const Color(0xFF5A4636));
+    if (cracked) {
+      final p = Paint()
+        ..color = Colors.white.withOpacity(0.85)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.03
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(
+        Path()
+          ..moveTo(c.dx - w * 0.4, c.dy - h * 0.3)
+          ..lineTo(c.dx - w * 0.05, c.dy + h * 0.05)
+          ..lineTo(c.dx + w * 0.2, c.dy - h * 0.1)
+          ..lineTo(c.dx + w * 0.45, c.dy + h * 0.3),
+        p,
+      );
     }
   }
 

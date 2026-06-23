@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
+import 'display_text.dart';
 
 /// Premium frosted panel — translucent fill, hairline gold border, soft depth.
 /// The building block for cards/stats so nothing looks flat or cheap.
@@ -40,28 +41,14 @@ class SoftCard extends StatelessWidget {
   }
 }
 
-/// Gold-gradient title text — the premium hero wordmark.
+/// Gold-gradient hero wordmark — now set in the regal Cinzel display face.
 class GoldTitle extends StatelessWidget {
   final String text;
   final double size;
   final double letterSpacing;
-  const GoldTitle(this.text, {super.key, this.size = 34, this.letterSpacing = 1});
+  const GoldTitle(this.text, {super.key, this.size = 34, this.letterSpacing = 1.5});
 
   @override
-  Widget build(BuildContext context) {
-    return ShaderMask(
-      shaderCallback: (r) => Palette.brand.createShader(r),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Jakarta',
-          fontSize: size,
-          fontWeight: FontWeight.w800,
-          letterSpacing: letterSpacing,
-          color: Colors.white,
-          height: 1.05,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      DisplayText(text, size: size, weight: 800, letterSpacing: letterSpacing);
 }

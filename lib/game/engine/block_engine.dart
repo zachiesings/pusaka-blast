@@ -9,7 +9,9 @@ class PlaceResult {
   final int linesCleared;      // rows + cols cleared this move
   final int gained;            // score added by this move (placement + clears)
   final List<Cell> filledCells;   // cells the piece occupied (for pop-in FX)
-  final List<Cell> clearedCells;  // cells removed by line clears (for clear FX)
+  final List<Cell> clearedCells;  // cells actually removed by clears (for clear FX)
+  final List<Cell> crackedCells;  // locked cells that took a hit but survived
+  final int treasuresCleared;     // Harta cells freed this move
   final bool boardCleared;        // the whole board is empty after this move (perfect clear)
 
   const PlaceResult({
@@ -18,10 +20,22 @@ class PlaceResult {
     this.gained = 0,
     this.filledCells = const [],
     this.clearedCells = const [],
+    this.crackedCells = const [],
+    this.treasuresCleared = 0,
     this.boardCleared = false,
   });
 
   static const PlaceResult invalid = PlaceResult(placed: false);
+}
+
+/// Special board cell states layered over the colour grid.
+/// 0 = normal, 1 = Harta (treasure), 2 = Gembok (locked, 2 hits), 3 = locked-cracked.
+class CellKind {
+  CellKind._();
+  static const int normal = 0;
+  static const int treasure = 1;
+  static const int locked = 2;
+  static const int cracked = 3;
 }
 
 /// Pure board logic for the 8x8 Block-Blast grid. Holds only the grid of colors
@@ -30,6 +44,7 @@ class PlaceResult {
 class BlockEngine {
   final int size;
   late List<List<Color?>> _grid;
+  late List<List<int>> _kind; // special-cell layer (see CellKind)
 
   BlockEngine({this.size = 8}) {
     reset();
@@ -37,7 +52,10 @@ class BlockEngine {
 
   void reset() {
     _grid = List.generate(size, (_) => List<Color?>.filled(size, null));
+    _kind = List.generate(size, (_) => List<int>.filled(size, CellKind.normal));
   }
+
+  int kindAt(int col, int row) => _kind[row][col];
 
   /// Total filled cells on the board (for obstacle / pressure checks).
   int get filledCount {
@@ -54,22 +72,32 @@ class BlockEngine {
   /// completing a row/column (so the board never starts mid-clear). Used by the
   /// campaign to add "rintangan" pressure. Keeps a 2-cell margin per row/col so
   /// the board stays playable.
-  void scatter(int count, Color color, Random rng) {
+  void scatter(int count, Color color, Random rng, {int kind = CellKind.normal}) {
     var placed = 0;
     var guard = 0;
-    final rowFill = List<int>.filled(size, 0);
-    final colFill = List<int>.filled(size, 0);
-    while (placed < count && guard < count * 40) {
+    while (placed < count && guard < count * 60) {
       guard++;
       final c = rng.nextInt(size);
       final r = rng.nextInt(size);
       if (_grid[r][c] != null) continue;
-      if (rowFill[r] >= size - 2 || colFill[c] >= size - 2) continue;
+      // keep a 2-cell margin per row/col so the board never starts mid-clear
+      if (_rowCount(r) >= size - 2 || _colCount(c) >= size - 2) continue;
       _grid[r][c] = color;
-      rowFill[r]++;
-      colFill[c]++;
+      _kind[r][c] = kind;
       placed++;
     }
+  }
+
+  int _rowCount(int r) {
+    var n = 0;
+    for (var c = 0; c < size; c++) if (_grid[r][c] != null) n++;
+    return n;
+  }
+
+  int _colCount(int c) {
+    var n = 0;
+    for (var r = 0; r < size; r++) if (_grid[r][c] != null) n++;
+    return n;
   }
 
   Color? cellColor(int col, int row) => _grid[row][col];
@@ -103,6 +131,7 @@ class BlockEngine {
     if (col < 0 || col >= size || row < 0 || row >= size) return false;
     if (_grid[row][col] == null) return false;
     _grid[row][col] = null;
+    _kind[row][col] = CellKind.normal;
     return true;
   }
 
@@ -113,6 +142,7 @@ class BlockEngine {
       for (var c = col - 1; c <= col + 1; c++) {
         if (c >= 0 && c < size && r >= 0 && r < size && _grid[r][c] != null) {
           _grid[r][c] = null;
+          _kind[r][c] = CellKind.normal;
           n++;
         }
       }
@@ -138,6 +168,7 @@ class BlockEngine {
       for (var c = 0; c < size; c++) {
         final v = data[i++];
         _grid[r][c] = v < 0 ? null : Color(v);
+        _kind[r][c] = CellKind.normal;
       }
     }
   }
@@ -188,23 +219,38 @@ class BlockEngine {
       }
     }
 
-    final cleared = <Cell>{};
+    final inClear = <Cell>{};
     for (final r in fullRows) {
       for (var c = 0; c < size; c++) {
-        cleared.add(Cell(c, r));
+        inClear.add(Cell(c, r));
       }
     }
     for (final c in fullCols) {
       for (var r = 0; r < size; r++) {
-        cleared.add(Cell(c, r));
+        inClear.add(Cell(c, r));
       }
     }
-    for (final cell in cleared) {
-      _grid[cell.row][cell.col] = null;
+
+    // Resolve each cleared cell by kind: normal/treasure are removed; a locked
+    // Gembok absorbs one hit (cracks) and survives the first clear.
+    final removed = <Cell>[];
+    final cracked = <Cell>[];
+    var treasures = 0;
+    for (final cell in inClear) {
+      final k = _kind[cell.row][cell.col];
+      if (k == CellKind.locked) {
+        _kind[cell.row][cell.col] = CellKind.cracked; // stays filled, now 1 hit
+        cracked.add(cell);
+      } else {
+        if (k == CellKind.treasure) treasures++;
+        _grid[cell.row][cell.col] = null;
+        _kind[cell.row][cell.col] = CellKind.normal;
+        removed.add(cell);
+      }
     }
 
     // Perfect clear: the entire board is empty after this move.
-    var boardCleared = cleared.isNotEmpty;
+    var boardCleared = inClear.isNotEmpty;
     if (boardCleared) {
       outer:
       for (var r = 0; r < size; r++) {
@@ -219,17 +265,20 @@ class BlockEngine {
 
     final lines = fullRows.length + fullCols.length;
     // Scoring: +1 per placed cell, +10 per cleared line, escalating bonus for
-    // multi-line clears, all scaled by the current combo multiplier.
+    // multi-line clears (combo-scaled), +40 per freed Harta, perfect bonus.
     final placeScore = piece.size;
     final clearScore = lines == 0 ? 0 : (10 * lines + 10 * lines * (lines - 1)) * comboMultiplier;
+    final treasureBonus = treasures * 40;
     final perfectBonus = boardCleared ? 300 : 0;
 
     return PlaceResult(
       placed: true,
       linesCleared: lines,
-      gained: placeScore + clearScore + perfectBonus,
+      gained: placeScore + clearScore + treasureBonus + perfectBonus,
       filledCells: filled,
-      clearedCells: cleared.toList(growable: false),
+      clearedCells: removed,
+      crackedCells: cracked,
+      treasuresCleared: treasures,
       boardCleared: boardCleared,
     );
   }

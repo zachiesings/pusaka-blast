@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
+import '../../core/motion.dart';
 import '../../game/game_mode.dart';
 import '../../game/wave.dart';
 import '../../game/achievements.dart';
@@ -31,8 +32,18 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   int _tab = 0;
+  late final AnimationController _tabAnim =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 340))
+        ..value = 1;
+
+  void _selectTab(int i) {
+    if (i == _tab) return;
+    setState(() => _tab = i);
+    _tabAnim.forward(from: 0);
+  }
 
   @override
   void initState() {
@@ -47,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _tabAnim.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -118,18 +130,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _tab,
-        children: [
-          _BerandaTab(onOpenAdventure: () => setState(() => _tab = 1)),
-          const AdventureMapScreen(embedded: true),
-          const _ProfilTab(),
-        ],
+      body: TabSwapTransition(
+        animation: _tabAnim,
+        child: IndexedStack(
+          index: _tab,
+          children: [
+            _BerandaTab(onOpenAdventure: () => _selectTab(1)),
+            const AdventureMapScreen(embedded: true),
+            const _ProfilTab(),
+          ],
+        ),
       ),
-      bottomNavigationBar: _NavBar(
-        index: _tab,
-        onTap: (i) => setState(() => _tab = i),
-      ),
+      bottomNavigationBar: _NavBar(index: _tab, onTap: _selectTab),
     );
   }
 }
@@ -229,21 +241,25 @@ class _BerandaTabState extends State<_BerandaTab> {
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      onPressed: () => app.setMusic(!app.music),
-                      icon: Icon(app.music ? Icons.music_note : Icons.music_off,
-                          color: app.music ? Palette.gold : Palette.goldSoft),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const _HeroMascot(),
                   const SizedBox(height: 6),
-                  const GoldTitle('PUSAKA BLAST', size: 36, letterSpacing: 2),
-                  const SizedBox(height: 4),
+                  _TopBar(
+                    coins: app.coins,
+                    streak: app.dailyStreak,
+                    music: app.music,
+                    onMusic: () => app.setMusic(!app.music),
+                  ),
+                  const SizedBox(height: 2),
+                  const _HeroMascot(),
+                  const SizedBox(height: 2),
+                  const GoldTitle('PUSAKA BLAST', size: 40, letterSpacing: 3),
+                  const SizedBox(height: 8),
+                  const _OrnamentDivider(),
+                  const SizedBox(height: 6),
                   Text('Teka-teki balok rasa Nusantara',
-                      style: TextStyle(color: Palette.cream.withOpacity(0.6), letterSpacing: 0.5)),
+                      style: TextStyle(
+                          color: Palette.cream.withOpacity(0.6),
+                          letterSpacing: 0.5,
+                          fontSize: 13)),
                   const SizedBox(height: 18),
                   _StatRow(best: app.highScore, coins: app.coins),
                   const SizedBox(height: 16),
@@ -381,67 +397,174 @@ class _AdventureHerald extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cur = WaveCatalog.byIndex(unlocked.clamp(1, WaveCatalog.count));
+    final accent = cur.accent;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Palette.maroon.withOpacity(0.55), Palette.panel.withOpacity(0.85)],
+            colors: [accent.withOpacity(0.32), Palette.panel.withOpacity(0.9)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Palette.gold.withOpacity(0.4), width: 1.2),
-          boxShadow: Palette.glow(Palette.gold, blur: 20, a: 0.16),
+          border: Border.all(color: Palette.gold.withOpacity(0.45), width: 1.2),
+          boxShadow: Palette.glow(accent, blur: 22, a: 0.2),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                gradient: Palette.brand,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: Palette.glow(Palette.gold, blur: 14, a: 0.3),
-              ),
-              child: const Icon(Icons.map_rounded, color: Palette.ink, size: 28),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Petualangan Nusantara',
-                      style: TextStyle(
-                          color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 2),
-                  Text(
-                    complete
-                        ? 'Tuntas! ⭐ $stars/${WaveCatalog.count * 3}'
-                        : 'Wave $unlocked • ${cur.title}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Palette.gold.withOpacity(0.9), fontSize: 13),
+            Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: Palette.brand,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: Palette.glow(Palette.gold, blur: 14, a: 0.3),
                   ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
+                  child: Icon(complete ? Icons.workspace_premium_rounded : cur.goal.icon,
+                      color: Palette.ink, size: 28),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(complete ? 'PETUALANGAN' : 'LANJUTKAN',
+                          style: TextStyle(
+                              color: accent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2)),
+                      const SizedBox(height: 2),
+                      Text(complete ? 'Nusantara Tuntas' : cur.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Palette.cream, fontSize: 18, fontWeight: FontWeight.w900)),
+                      Text(complete ? 'Semua pusaka diraih' : '${cur.region} • ${cur.goal.label(cur.target)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Palette.cream.withOpacity(0.6), fontSize: 12)),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: Palette.gold, size: 28),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
                       value: (unlocked - 1) / WaveCatalog.count,
-                      minHeight: 5,
+                      minHeight: 6,
                       backgroundColor: Palette.bg1.withOpacity(0.7),
                       color: Palette.gold,
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                Icon(Icons.star_rounded, color: Palette.gold, size: 15),
+                const SizedBox(width: 3),
+                Text('$stars',
+                    style: const TextStyle(
+                        color: Palette.gold, fontWeight: FontWeight.w900, fontSize: 13)),
+                const SizedBox(width: 8),
+                Text('${(unlocked - 1).clamp(0, WaveCatalog.count)}/${WaveCatalog.count}',
+                    style: TextStyle(
+                        color: Palette.cream.withOpacity(0.7),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13)),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right_rounded, color: Palette.gold),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Top utility bar on Beranda — coins, login streak, and the music toggle.
+class _TopBar extends StatelessWidget {
+  final int coins, streak;
+  final bool music;
+  final VoidCallback onMusic;
+  const _TopBar({
+    required this.coins,
+    required this.streak,
+    required this.music,
+    required this.onMusic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget pill(IconData icon, String label, Color c) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: Palette.panel.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: c.withOpacity(0.35)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: c, size: 17),
+            const SizedBox(width: 5),
+            Text(label, style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 13)),
+          ]),
+        );
+    return Row(
+      children: [
+        pill(Icons.monetization_on_rounded, '$coins', Palette.gold),
+        const SizedBox(width: 8),
+        if (streak > 0) pill(Icons.local_fire_department_rounded, '${streak}h', Palette.coral),
+        const Spacer(),
+        GestureDetector(
+          onTap: onMusic,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Palette.panel.withOpacity(0.7),
+              shape: BoxShape.circle,
+              border: Border.all(color: Palette.gold.withOpacity(0.35)),
+            ),
+            child: Icon(music ? Icons.music_note_rounded : Icons.music_off_rounded,
+                color: music ? Palette.gold : Palette.goldSoft, size: 20),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A small carved batik divider — a gold rule with a centre diamond.
+class _OrnamentDivider extends StatelessWidget {
+  const _OrnamentDivider();
+  @override
+  Widget build(BuildContext context) {
+    Widget rule() => Container(
+          width: 52,
+          height: 1.5,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [Palette.gold.withOpacity(0), Palette.gold.withOpacity(0.7)]),
+          ),
+        );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        rule(),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Icon(Icons.diamond_rounded, color: Palette.gold, size: 12),
+        ),
+        Transform.flip(flipX: true, child: rule()),
+      ],
     );
   }
 }
