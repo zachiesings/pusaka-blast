@@ -15,13 +15,13 @@ class K {
   // The boss flips this to false AFTER creating the real AdMob app + units and
   // pasting their ids below. See docs/PANDUAN-ADMOB.md.
   static const bool adsEnabled = true;
-  static const bool useTestAds = true;
+  static const bool useTestAds = false; // REAL ads (production)
+  static const bool interstitialEnabled = false; // Rewarded-only per design
 
-  // Real ad unit ids (Android). iOS ids are configured the same way in the doc.
-  // Left as the test ids until the boss provides real ones.
-  static const String rewardedAdUnit     = 'ca-app-pub-3940256099942544/5224354917';
-  static const String interstitialAdUnit = 'ca-app-pub-3940256099942544/1033173712';
-  static const String bannerAdUnit       = 'ca-app-pub-3940256099942544/6300978111';
+  // Real AdMob ids (publisher ca-app-pub-1298950542115439).
+  static const String rewardedAdUnit     = 'ca-app-pub-1298950542115439/1097238059';
+  static const String interstitialAdUnit = ''; // disabled (interstitialEnabled=false)
+  static const String bannerAdUnit       = '';
 
   // ----- Persistence keys -----
   static const String kHighScore = 'pb_high_score';
