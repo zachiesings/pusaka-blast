@@ -7,8 +7,8 @@ import '../../services/audio/audio_service.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../game/game_mode.dart';
+import '../../game/wave.dart';
 import '../../game/models/cell.dart';
-import '../../widgets/batik.dart';
 import '../../widgets/mascot.dart';
 import 'widgets/board_view.dart';
 import 'widgets/game_backdrop.dart';
@@ -157,6 +157,19 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     });
   }
 
+  /// Replace this screen with a fresh game for [w] (campaign "Lanjut").
+  void _goToWave(BuildContext context, WaveSpec w) {
+    final app = context.read<AppState>();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider<GameController>(
+          create: (_) => GameController(app, wave: w)..newGame(),
+          child: const GameScreen(),
+        ),
+      ),
+    );
+  }
+
   Future<void> _revive(BuildContext context, GameController gc, AppState app) async {
     final ok = await app.ads.showRewarded(RewardKind.revive);
     if (!context.mounted) return;
@@ -219,6 +232,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                       ],
                     ),
                   ),
+                  if (gc.isCampaign) _WaveObjectiveBar(gc: gc),
                   Expanded(
                     child: AnimatedBuilder(
                       animation: _fx,
@@ -360,7 +374,31 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     ),
                   ),
                 ),
-              if (gc.isGameOver)
+              if (gc.waveWon)
+                _WaveCompleteOverlay(
+                  gc: gc,
+                  onNext: () {
+                    final next = gc.wave!.index + 1;
+                    if (next <= WaveCatalog.count) {
+                      _goToWave(context, WaveCatalog.byIndex(next));
+                    } else {
+                      Navigator.of(context).maybePop();
+                    }
+                  },
+                  onReplay: () => gc.newGame(),
+                  onMap: () => Navigator.of(context).maybePop(),
+                )
+              else if (gc.isGameOver && gc.isCampaign)
+                _WaveFailedOverlay(
+                  gc: gc,
+                  onRevive: () => _revive(context, gc, app),
+                  onReplay: () async {
+                    await app.maybeShowInterstitial();
+                    gc.newGame();
+                  },
+                  onMap: () => Navigator.of(context).maybePop(),
+                )
+              else if (gc.isGameOver)
                 _GameOverOverlay(
                   score: gc.score,
                   best: app.highScore,
@@ -938,6 +976,320 @@ class _GameOverOverlay extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onRestart,
                   child: const Text('Main Lagi'),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Campaign objective progress bar shown under the HUD during a wave.
+class _WaveObjectiveBar extends StatelessWidget {
+  final GameController gc;
+  const _WaveObjectiveBar({required this.gc});
+
+  @override
+  Widget build(BuildContext context) {
+    final w = gc.wave!;
+    final cur = gc.waveProgress.clamp(0, w.target);
+    final frac = (gc.waveProgress / w.target).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 6, 28, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: Palette.panel.withOpacity(0.55),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: w.accent.withOpacity(0.4)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: w.accent.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text('W${w.index}',
+                  style: TextStyle(color: w.accent, fontWeight: FontWeight.w900, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            Icon(w.goal.icon, color: Palette.gold, size: 16),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(w.goal.label(w.target),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Palette.cream, fontSize: 12, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 3),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: frac,
+                      minHeight: 5,
+                      backgroundColor: Palette.bg1.withOpacity(0.7),
+                      color: w.accent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('$cur/${w.target}',
+                style: const TextStyle(
+                    color: Palette.gold, fontWeight: FontWeight.w900, fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Win panel for a campaign wave — animated stars, heirloom claimed, rewards.
+class _WaveCompleteOverlay extends StatefulWidget {
+  final GameController gc;
+  final VoidCallback onNext, onReplay, onMap;
+  const _WaveCompleteOverlay({
+    required this.gc,
+    required this.onNext,
+    required this.onReplay,
+    required this.onMap,
+  });
+
+  @override
+  State<_WaveCompleteOverlay> createState() => _WaveCompleteOverlayState();
+}
+
+class _WaveCompleteOverlayState extends State<_WaveCompleteOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gc = widget.gc;
+    final w = gc.wave!;
+    final stars = gc.waveStars;
+    final isFinale = w.index >= WaveCatalog.count;
+    return Container(
+      color: Colors.black.withOpacity(0.74),
+      alignment: Alignment.center,
+      child: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Palette.panel, Palette.bg1],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Palette.gold.withOpacity(0.5), width: 1.5),
+            boxShadow: Palette.glow(Palette.gold, blur: 44, a: 0.45),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MascotView(size: 100, mood: MascotMood.cheer),
+              const SizedBox(height: 4),
+              Text(isFinale ? 'NUSANTARA TUNTAS! 🎉' : 'Pusaka Diraih!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: isFinale ? 24 : 22,
+                      fontWeight: FontWeight.w900,
+                      color: Palette.gold)),
+              const SizedBox(height: 4),
+              Text('${w.title} • ${w.region}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Palette.cream, fontSize: 15, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 14),
+              // animated stars
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (i) {
+                  final start = 0.2 + i * 0.22;
+                  final earned = i < stars;
+                  return AnimatedBuilder(
+                    animation: _c,
+                    builder: (_, __) {
+                      final tt = ((_c.value - start) / 0.3).clamp(0.0, 1.0);
+                      return Transform.scale(
+                        scale: earned ? (0.4 + Curves.easeOutBack.transform(tt) * 0.6) : 1.0,
+                        child: Icon(
+                          earned ? Icons.star_rounded : Icons.star_outline_rounded,
+                          size: 48,
+                          color: earned
+                              ? Palette.gold.withOpacity(tt.clamp(0.2, 1.0))
+                              : Palette.goldSoft.withOpacity(0.4),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                children: [
+                  _RunStat(icon: Icons.stars_rounded, label: 'Skor', value: '${gc.score}'),
+                  _RunStat(icon: Icons.bolt, label: 'Combo', value: '×${gc.maxCombo}'),
+                  _RunStat(
+                      icon: Icons.monetization_on,
+                      label: 'Koin',
+                      value: '+${gc.waveFirstClear ? w.coins : (w.coins ~/ 3).clamp(2, 999)}'),
+                ],
+              ),
+              if (isFinale) ...[
+                const SizedBox(height: 14),
+                Text('Semua 20 wave selesai — kamu Sang Penjaga Pusaka Nusantara!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Palette.cream.withOpacity(0.8), fontSize: 13, height: 1.3)),
+              ],
+              const SizedBox(height: 20),
+              if (!isFinale)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: widget.onNext,
+                    icon: const Icon(Icons.skip_next_rounded),
+                    label: const Text('Wave Berikutnya'),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  ),
+                ),
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: widget.onReplay,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Palette.cream,
+                      side: const BorderSide(color: Palette.goldSoft),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Ulangi'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: widget.onMap,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Palette.gold,
+                      side: const BorderSide(color: Palette.gold),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Peta'),
+                  ),
+                ),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fail panel for a campaign wave — shows progress reached + retry / revive.
+class _WaveFailedOverlay extends StatelessWidget {
+  final GameController gc;
+  final VoidCallback onRevive, onReplay, onMap;
+  const _WaveFailedOverlay({
+    required this.gc,
+    required this.onRevive,
+    required this.onReplay,
+    required this.onMap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final w = gc.wave!;
+    final reason = gc.timeLeft <= 0 && w.timed ? 'Waktu habis!' : 'Papan buntu!';
+    return Container(
+      color: Colors.black.withOpacity(0.74),
+      alignment: Alignment.center,
+      child: Container(
+        margin: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Palette.panel, Palette.bg1],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Palette.maroon.withOpacity(0.5), width: 1.5),
+          boxShadow: Palette.glow(Palette.maroon, blur: 40, a: 0.4),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MascotView(size: 100, mood: MascotMood.sad),
+            const SizedBox(height: 4),
+            Text(reason,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Palette.cream)),
+            const SizedBox(height: 4),
+            Text('Wave ${w.index} • ${w.title}',
+                style: TextStyle(color: Palette.cream.withOpacity(0.7), fontWeight: FontWeight.w700)),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Palette.bg1.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Palette.gold.withOpacity(0.25)),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(w.goal.icon, color: Palette.gold, size: 18),
+                const SizedBox(width: 8),
+                Text('${gc.waveProgress.clamp(0, w.target)} / ${w.target}  —  ${w.goal.short}',
+                    style: const TextStyle(color: Palette.cream, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onRevive,
+                icon: const Icon(Icons.play_circle_fill),
+                label: const Text('Lanjut — Tonton Iklan'),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onMap,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Palette.cream,
+                    side: const BorderSide(color: Palette.goldSoft),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Peta'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onReplay,
+                  child: const Text('Ulangi'),
                 ),
               ),
             ]),

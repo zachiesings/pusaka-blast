@@ -8,6 +8,7 @@ import '../game/game_mode.dart';
 import '../game/models/block_piece.dart';
 import '../game/models/cell.dart';
 import '../game/pieces.dart';
+import '../game/wave.dart';
 import '../services/audio/audio_service.dart';
 import 'app_state.dart';
 
@@ -16,8 +17,14 @@ import 'app_state.dart';
 class GameController extends ChangeNotifier {
   final AppState app;
   final BlastMode mode;
+  final WaveSpec? wave; // non-null = a campaign stage (Petualangan Nusantara)
   final BlockEngine engine = BlockEngine(size: K.gridSize);
   final Random _rng = Random();
+
+  /// Neutral "batik stone" colour used for scattered campaign obstacles.
+  static const Color _stone = Color(0xFF5A4636);
+
+  bool get isCampaign => wave != null;
 
   final List<BlockPiece?> tray = List<BlockPiece?>.filled(K.trayCount, null);
 
@@ -48,7 +55,16 @@ class GameController extends ChangeNotifier {
   int maxCombo = 0;         // best combo this run (game-over summary)
   int berkahCount = 0;      // Berkah triggers this run
 
-  GameController(this.app, {this.mode = BlastMode.klasik});
+  // ----- Campaign wave tracking -----
+  int runLines = 0;     // cumulative lines cleared this run
+  int runClears = 0;    // line-clearing placements this run
+  int placements = 0;   // total pieces placed this run
+  int wavePerfects = 0; // perfect board-clears this run
+  bool waveWon = false; // the campaign objective has been met
+  int waveStars = 0;    // stars earned on a win (1..3)
+  bool waveFirstClear = false; // win was a brand-new clear (first time)
+
+  GameController(this.app, {this.mode = BlastMode.klasik, this.wave});
 
   void newGame() {
     engine.reset();
@@ -64,13 +80,61 @@ class GameController extends ChangeNotifier {
     berkahClears = 0;
     maxCombo = 0;
     berkahCount = 0;
+    runLines = 0;
+    runClears = 0;
+    placements = 0;
+    wavePerfects = 0;
+    waveWon = false;
+    waveStars = 0;
+    waveFirstClear = false;
+    if (wave != null && wave!.obstacles > 0) {
+      engine.scatter(wave!.obstacles, _stone, _rng);
+    }
     _refillTray();
     _timer?.cancel();
     if (mode.timed) {
       timeLeft = mode.seconds;
       _startTimer();
+    } else if (wave?.seconds != null) {
+      timeLeft = wave!.seconds!;
+      _startTimer();
     }
     notifyListeners();
+  }
+
+  /// Current progress toward this wave's objective (0..target).
+  int get waveProgress {
+    final w = wave;
+    if (w == null) return 0;
+    switch (w.goal) {
+      case WaveGoal.lines:
+        return runLines;
+      case WaveGoal.score:
+        return score;
+      case WaveGoal.clears:
+        return runClears;
+      case WaveGoal.combo:
+        return maxCombo;
+      case WaveGoal.perfect:
+        return wavePerfects;
+      case WaveGoal.survive:
+        return placements;
+    }
+  }
+
+  bool get _goalMet => wave != null && waveProgress >= wave!.target;
+
+  void _checkWaveGoal() {
+    if (wave == null || waveWon || isGameOver) return;
+    if (!_goalMet) return;
+    waveWon = true;
+    _timer?.cancel();
+    waveStars = wave!.starsFor(placements, timeLeft: timeLeft);
+    waveFirstClear = !app.isWaveCleared(wave!.index);
+    final reward = waveFirstClear ? wave!.coins : (wave!.coins ~/ 3).clamp(2, 999);
+    app.recordWaveResult(wave!.index, waveStars, coins: reward);
+    app.recordGameOver(); // counts as a completed session for stats
+    app.playSfx(Sfx.gong);
   }
 
   // ----- Power-ups -----
@@ -141,12 +205,14 @@ class GameController extends ChangeNotifier {
   /// Attempt to drop tray piece [trayIndex] at board (col,row). Returns true on
   /// success. Handles scoring, combo, coins, tray refill and game-over.
   bool place(int trayIndex, int col, int row) {
+    if (waveWon || isGameOver) return false;
     final piece = tray[trayIndex];
     if (piece == null || !engine.canPlace(piece, col, row)) return false;
 
     final result = engine.place(piece, col, row, comboMultiplier: combo + 1);
     if (!result.placed) return false;
 
+    placements++;
     lastFilledCells = result.filledCells;
     placeEvent++;
     berkahJustTriggered = false;
@@ -162,6 +228,9 @@ class GameController extends ChangeNotifier {
     if (result.linesCleared > 0) {
       combo++;
       if (combo > maxCombo) maxCombo = combo;
+      runLines += result.linesCleared;
+      runClears++;
+      if (result.boardCleared) wavePerfects++;
       lastClearedCells = result.clearedCells;
       clearEvent++;
       // Fill the Berkah meter; when full, light up a x2 streak.
@@ -197,12 +266,14 @@ class GameController extends ChangeNotifier {
     tray[trayIndex] = null;
     if (tray.every((p) => p == null)) _refillTray();
 
-    _checkGameOver();
+    _checkWaveGoal();
+    if (!waveWon) _checkGameOver();
     notifyListeners();
     return true;
   }
 
   void _checkGameOver() {
+    if (waveWon) return;
     final remaining = tray.whereType<BlockPiece>();
     if (remaining.isEmpty) return; // about to refill
     final anyFits = remaining.any(engine.hasAnyPlacement);
@@ -215,7 +286,7 @@ class GameController extends ChangeNotifier {
     engine.reset();
     combo = 0;
     isGameOver = false;
-    if (mode.timed) {
+    if (mode.timed || wave?.seconds != null) {
       if (timeLeft <= 0) timeLeft = 30; // give time back on revive
       _startTimer(); // restart the (cancelled) countdown
     }

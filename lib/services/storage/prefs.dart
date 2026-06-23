@@ -50,4 +50,23 @@ class Prefs {
   Future<void> setGamesPlayed(int v) => _p.setInt(K.kGames, v);
   int get totalLines => _p.getInt(K.kTotalLines) ?? 0;
   Future<void> setTotalLines(int v) => _p.setInt(K.kTotalLines, v);
+
+  // ----- Campaign (Petualangan Nusantara) -----
+  int get campaignUnlocked => _p.getInt(K.kCampaignUnlocked) ?? 1;
+  Future<void> setCampaignUnlocked(int v) => _p.setInt(K.kCampaignUnlocked, v);
+
+  /// Stars earned per wave, index 0 == wave 1. Always length 20.
+  List<int> get waveStars {
+    final raw = _p.getString(K.kWaveStars);
+    final out = List<int>.filled(20, 0);
+    if (raw == null || raw.isEmpty) return out;
+    final parts = raw.split(',');
+    for (var i = 0; i < 20 && i < parts.length; i++) {
+      out[i] = int.tryParse(parts[i]) ?? 0;
+    }
+    return out;
+  }
+
+  Future<void> setWaveStars(List<int> stars) =>
+      _p.setString(K.kWaveStars, stars.join(','));
 }

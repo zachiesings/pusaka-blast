@@ -237,4 +237,41 @@ class AppState extends ChangeNotifier {
   void recordLines(int n) {
     if (n > 0) _prefs.setTotalLines(_prefs.totalLines + n);
   }
+
+  // ----- Campaign (Petualangan Nusantara) -----
+  late int _campaignUnlocked = _prefs.campaignUnlocked;
+  late final List<int> _waveStars = _prefs.waveStars;
+
+  /// Highest wave the player may enter (1..20).
+  int get campaignUnlocked => _campaignUnlocked;
+
+  /// Stars (0..3) earned for wave [index] (1-based).
+  int starsForWave(int index) =>
+      (index >= 1 && index <= 20) ? _waveStars[index - 1] : 0;
+
+  bool isWaveUnlocked(int index) => index <= _campaignUnlocked;
+  bool isWaveCleared(int index) => starsForWave(index) > 0;
+
+  int get totalStars => _waveStars.fold(0, (a, b) => a + b);
+  int get wavesCleared => _waveStars.where((s) => s > 0).length;
+  bool get campaignComplete => wavesCleared >= 20;
+
+  /// Record a wave win with [stars] (1..3); keeps the best star count, unlocks
+  /// the next wave, and grants [coins]. Returns true if this is a brand-new
+  /// clear (so callers can show a first-time bonus / finale).
+  bool recordWaveResult(int index, int stars, {int coins = 0}) {
+    if (index < 1 || index > 20) return false;
+    final firstClear = _waveStars[index - 1] == 0;
+    if (stars > _waveStars[index - 1]) {
+      _waveStars[index - 1] = stars;
+      _prefs.setWaveStars(_waveStars);
+    }
+    if (index + 1 > _campaignUnlocked && index < 20) {
+      _campaignUnlocked = index + 1;
+      _prefs.setCampaignUnlocked(_campaignUnlocked);
+    }
+    if (coins > 0) addCoins(coins);
+    notifyListeners();
+    return firstClear;
+  }
 }

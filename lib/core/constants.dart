@@ -39,6 +39,8 @@ class K {
   static const String kStreak    = 'pb_daily_streak';
   static const String kGames     = 'pb_games_played';
   static const String kTotalLines = 'pb_total_lines';
+  static const String kCampaignUnlocked = 'pb_campaign_unlocked'; // highest wave unlocked (1..20)
+  static const String kWaveStars  = 'pb_wave_stars'; // CSV of 20 star counts (0..3)
   static const int powerupCost   = 40; // coins per power-up
 }
 

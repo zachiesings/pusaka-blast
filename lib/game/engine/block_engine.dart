@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/cell.dart';
 import '../models/block_piece.dart';
@@ -36,6 +37,39 @@ class BlockEngine {
 
   void reset() {
     _grid = List.generate(size, (_) => List<Color?>.filled(size, null));
+  }
+
+  /// Total filled cells on the board (for obstacle / pressure checks).
+  int get filledCount {
+    var n = 0;
+    for (var r = 0; r < size; r++) {
+      for (var c = 0; c < size; c++) {
+        if (_grid[r][c] != null) n++;
+      }
+    }
+    return n;
+  }
+
+  /// Scatter [count] obstacle cells of [color] onto empty squares without ever
+  /// completing a row/column (so the board never starts mid-clear). Used by the
+  /// campaign to add "rintangan" pressure. Keeps a 2-cell margin per row/col so
+  /// the board stays playable.
+  void scatter(int count, Color color, Random rng) {
+    var placed = 0;
+    var guard = 0;
+    final rowFill = List<int>.filled(size, 0);
+    final colFill = List<int>.filled(size, 0);
+    while (placed < count && guard < count * 40) {
+      guard++;
+      final c = rng.nextInt(size);
+      final r = rng.nextInt(size);
+      if (_grid[r][c] != null) continue;
+      if (rowFill[r] >= size - 2 || colFill[c] >= size - 2) continue;
+      _grid[r][c] = color;
+      rowFill[r]++;
+      colFill[c]++;
+      placed++;
+    }
   }
 
   Color? cellColor(int col, int row) => _grid[row][col];
