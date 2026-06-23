@@ -10,6 +10,7 @@ import '../../game/game_mode.dart';
 import '../../game/wave.dart';
 import '../../game/models/cell.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/effects.dart';
 import 'widgets/board_view.dart';
 import 'widgets/game_backdrop.dart';
 import 'widgets/clear_fx.dart';
@@ -197,6 +198,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
       body: Stack(
         children: [
           const Positioned.fill(child: GameBackdrop()),
+          const Positioned.fill(child: SparkleField(count: 14)),
           SafeArea(
           child: Stack(
             children: [

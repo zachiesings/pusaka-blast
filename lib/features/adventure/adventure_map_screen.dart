@@ -5,6 +5,7 @@ import '../../game/wave.dart';
 import '../../state/app_state.dart';
 import '../../state/game_controller.dart';
 import '../../widgets/display_text.dart';
+import '../../widgets/effects.dart';
 import '../../widgets/roaming_mascot.dart';
 import '../game/widgets/game_backdrop.dart';
 import '../game/game_screen.dart';
@@ -86,8 +87,10 @@ class _AdventureMapScreenState extends State<AdventureMapScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
+        fit: StackFit.expand,
         children: [
           const Positioned.fill(child: GameBackdrop()),
+          const Positioned.fill(child: SparkleField(count: 18)),
           Positioned.fill(
             child: LayoutBuilder(
               builder: (context, c) {
@@ -150,10 +153,13 @@ class _AdventureMapScreenState extends State<AdventureMapScreen> {
             left: 0, right: 0, bottom: 0, height: 120,
             child: IgnorePointer(child: RoamingMascot(size: 66)),
           ),
-          _Header(
-              totalStars: app.totalStars,
-              cleared: app.wavesCleared,
-              showBack: !widget.embedded),
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: _Header(
+                totalStars: app.totalStars,
+                cleared: app.wavesCleared,
+                showBack: !widget.embedded),
+          ),
         ],
       ),
     );

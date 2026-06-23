@@ -16,6 +16,7 @@ import '../../widgets/roaming_mascot.dart';
 import '../game/widgets/game_backdrop.dart';
 import '../../widgets/mascot.dart';
 import '../../widgets/soft_card.dart';
+import '../../widgets/effects.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_screen.dart';
 import '../about/about_screen.dart';
@@ -230,8 +231,10 @@ class _BerandaTabState extends State<_BerandaTab> {
     final app = context.watch<AppState>();
     return BatikBackground(
       child: Stack(
+        fit: StackFit.expand,
         children: [
           const Positioned.fill(child: GameBackdrop()),
+          const Positioned.fill(child: SparkleField(count: 24)),
           const Positioned(top: 0, left: 0, right: 0, child: PendopoRoof()),
           // strolling character along the lower third
           const Positioned(left: 0, right: 0, bottom: 78, height: 110,
@@ -251,7 +254,9 @@ class _BerandaTabState extends State<_BerandaTab> {
                   const SizedBox(height: 2),
                   const _HeroMascot(),
                   const SizedBox(height: 2),
-                  const GoldTitle('PUSAKA BLAST', size: 40, letterSpacing: 3),
+                  const ShimmerSweep(
+                    child: GoldTitle('PUSAKA BLAST', size: 40, letterSpacing: 3),
+                  ),
                   const SizedBox(height: 8),
                   const _OrnamentDivider(),
                   const SizedBox(height: 6),
