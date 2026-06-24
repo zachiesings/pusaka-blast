@@ -9,7 +9,7 @@ SFX + an upbeat, humanized original BGM. Existing asset paths kept (drop-in):
 All sounds are GM-rendered originals (no copyrighted material). The 'gong' uses
 the closest GM voice (Tubular Bells) — FLAGGED in AUDIO-CREDITS.md.
 """
-import os, sys, subprocess, random
+import os, re, sys, subprocess, random
 
 import mido
 from mido import Message, MidiFile, MidiTrack, MetaMessage
@@ -27,11 +27,19 @@ def sh(cmd):
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def fsynth(mid, wav, gain=0.9, room=0.5, level=0.4):
+def fsynth(mid, wav, gain=0.5, room=0.2, level=0.10):
+    # Conservative gain + LIGHT reverb → headroom, no internal clipping.
     sh(["fluidsynth", "-ni", "-g", str(gain), "-F", wav, "-r", str(SR),
         "-o", "synth.reverb.active=1", "-o", f"synth.reverb.room-size={room}",
-        "-o", "synth.reverb.width=0.7", "-o", f"synth.reverb.level={level}",
+        "-o", "synth.reverb.width=0.5", "-o", f"synth.reverb.level={level}",
         SF2, mid])
+
+
+def peak_db(path):
+    r = subprocess.run(["ffmpeg", "-i", path, "-af", "volumedetect", "-f", "null", "-"],
+                       stderr=subprocess.PIPE, stdout=subprocess.DEVNULL, text=True).stderr
+    m = re.search(r"max_volume:\s*(-?\d+(?:\.\d+)?) dB", r)
+    return float(m.group(1)) if m else 0.0
 
 
 def render(name, events, ch_progs, bpm, gain=0.9, room=0.5, level=0.4, norm=-14, loop=False):
@@ -50,11 +58,16 @@ def render(name, events, ch_progs, bpm, gain=0.9, room=0.5, level=0.4, norm=-14,
     raw = os.path.join(AUD, f"_{name}.raw.wav")
     out = os.path.join(AUD, f"{name}.wav")
     mf.save(mid)
-    fsynth(mid, raw, gain=gain, room=room, level=level)
-    af = f"loudnorm=I={norm}:TP=-1.0"
-    if not loop:
-        af = "silenceremove=start_periods=1:start_threshold=-50dB," + af
-    sh(["ffmpeg", "-y", "-i", raw, "-af", af, "-ac", "1", "-ar", str(SR), out])
+    # Force headroom + light, clean reverb regardless of caller values (old hot
+    # gain + heavy reverb caused clipping / "sember").
+    fsynth(mid, raw, gain=0.5, room=min(room, 0.35), level=min(level, 0.15))
+    # Peak-normalise (pure gain, no loudness limiter) to a clean target, keeping
+    # the callers' relative loudness intent (norm) but never clipping.
+    target = min(-2.0, norm + 8.0)
+    gain_db = target - peak_db(raw)
+    pre = "" if loop else "silenceremove=start_periods=1:start_threshold=-50dB,"
+    sh(["ffmpeg", "-y", "-i", raw, "-af", f"{pre}volume={gain_db:.2f}dB",
+        "-ac", "1", "-ar", str(SR), "-c:a", "pcm_s16le", out])
     os.remove(mid); os.remove(raw)
 
 
