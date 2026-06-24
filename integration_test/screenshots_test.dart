@@ -4,7 +4,10 @@
 // driver in test_driver/integration_test.dart, which writes the PNGs to disk.
 //
 // NOTE: we use pump(Duration) and never pumpAndSettle — the animated backdrop
-// and the idle mascot loop forever, so pumpAndSettle would time out.
+// and the idle mascot loop forever, so pumpAndSettle would time out. After each
+// capture we replace the tree with an empty widget and dispose the controller
+// so no animation outlives the test. Each test has a hard timeout so a stall
+// fails fast instead of hanging the whole job.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -21,6 +24,8 @@ import 'package:pusaka_blast/state/app_state.dart';
 import 'package:pusaka_blast/state/game_controller.dart';
 import 'package:pusaka_blast/features/game/game_screen.dart';
 import 'package:pusaka_blast/features/adventure/adventure_map_screen.dart';
+
+const _perTest = Timeout(Duration(seconds: 120));
 
 Future<AppState> _makeApp() async {
   SharedPreferences.setMockInitialValues(<String, Object>{
@@ -76,9 +81,20 @@ Future<void> _shoot(
   await binding.takeScreenshot(name);
 }
 
+Future<void> _captureGame(
+  WidgetTester tester,
+  IntegrationTestWidgetsFlutterBinding binding,
+  AppState app,
+  GameController gc,
+  String name,
+) async {
+  await _shoot(tester, binding, _wrapGame(app, gc), name);
+  await tester.pumpWidget(const SizedBox.shrink()); // tear down before disposing
+  gc.dispose();
+}
+
 void main() {
-  final binding =
-      IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('blast_01_board', (tester) async {
     final app = await _makeApp();
@@ -87,8 +103,8 @@ void main() {
     gc.score = 8420;
     gc.combo = 3;
     gc.maxCombo = 5;
-    await _shoot(tester, binding, _wrapGame(app, gc), 'blast_01_board');
-  });
+    await _captureGame(tester, binding, app, gc, 'blast_01_board');
+  }, timeout: _perTest);
 
   testWidgets('blast_02_berkah', (tester) async {
     final app = await _makeApp();
@@ -99,8 +115,8 @@ void main() {
     gc.maxCombo = 6;
     gc.berkahMeter = 1.0;
     gc.berkahClears = 3; // Berkah Keraton (x2) active → HUD lights up
-    await _shoot(tester, binding, _wrapGame(app, gc), 'blast_02_berkah');
-  });
+    await _captureGame(tester, binding, app, gc, 'blast_02_berkah');
+  }, timeout: _perTest);
 
   testWidgets('blast_03_adventure', (tester) async {
     final app = await _makeApp();
@@ -113,5 +129,6 @@ void main() {
       ),
     );
     await _shoot(tester, binding, w, 'blast_03_adventure');
-  });
+    await tester.pumpWidget(const SizedBox.shrink());
+  }, timeout: _perTest);
 }
