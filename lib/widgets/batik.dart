@@ -2,25 +2,26 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../core/constants.dart';
 
-/// Shared block-tile painter — glossy NEON tile: a rounded glass block with a
-/// bright top gloss and a glowing rim in its own colour. (Distinct from Tiles'
-/// batik tiles.) Public API unchanged so all callers keep working.
+/// Shared block-tile painter — a warm BATIK tile: a rounded block in its colour
+/// with a soft top sheen, a subtle hand-drawn **kawung** batik motif (a four-petal
+/// flower, the classic Javanese pattern), and a prada-gold rim. Reads clearly as
+/// batik — the warm keraton identity, distinct from Tiles' luminous indigo tiles.
 class BatikTile {
   BatikTile._();
 
   static void paint(Canvas canvas, Rect rect, Color color, {double opacity = 1}) {
     final r = rect.deflate(rect.width * 0.06);
-    final radius = Radius.circular(rect.width * 0.26);
+    final radius = Radius.circular(rect.width * 0.22);
     final rr = RRect.fromRectAndRadius(r, radius);
 
-    // outer neon glow
+    // soft drop shadow for depth
     canvas.drawRRect(
-      rr,
+      RRect.fromRectAndRadius(r.translate(0, rect.width * 0.03), radius),
       Paint()
-        ..color = color.withOpacity(0.45 * opacity)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, rect.width * 0.10),
+        ..color = Colors.black.withOpacity(0.28 * opacity)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, rect.width * 0.06),
     );
-    // glass body — darker base so the neon rim reads as light
+    // batik cloth body — warm vertical dye gradient
     canvas.drawRRect(
       rr,
       Paint()
@@ -28,32 +29,47 @@ class BatikTile {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color.lerp(color, Colors.white, 0.30)!,
+            Color.lerp(color, Colors.white, 0.22)!,
             color,
-            Color.lerp(color, Colors.black, 0.45)!,
+            Color.lerp(color, Colors.black, 0.30)!,
           ],
-          stops: const [0.0, 0.5, 1.0],
+          stops: const [0.0, 0.55, 1.0],
         ).createShader(r),
     );
-    // top gloss highlight
+
+    // kawung batik motif (clipped to the tile) — four petals + center dot, drawn
+    // in a slightly lighter dye so it reads as printed cloth, not clutter.
+    canvas.save();
+    canvas.clipRRect(rr);
+    final cxy = r.center;
+    final motif = Color.lerp(color, Palette.cream, 0.45)!.withOpacity(0.30 * opacity);
+    final mp = Paint()..color = motif;
+    final pr = r.width * 0.27; // petal radius
+    final off = r.width * 0.20; // petal offset from centre
+    for (final a in [0.0, math.pi / 2, math.pi, 3 * math.pi / 2]) {
+      final c = Offset(cxy.dx + math.cos(a) * off, cxy.dy + math.sin(a) * off);
+      canvas.save();
+      canvas.translate(c.dx, c.dy);
+      canvas.rotate(a);
+      canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: pr * 1.5, height: pr * 0.9), mp);
+      canvas.restore();
+    }
+    canvas.drawCircle(cxy, r.width * 0.07,
+        Paint()..color = Color.lerp(color, Palette.goldLt, 0.5)!.withOpacity(0.55 * opacity));
+    canvas.restore();
+
+    // soft top sheen (cloth highlight, not glassy)
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-          Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.42), radius),
-      Paint()..color = Colors.white.withOpacity(0.22 * opacity),
+      RRect.fromRectAndRadius(Rect.fromLTWH(r.left, r.top, r.width, r.height * 0.34), radius),
+      Paint()..color = Colors.white.withOpacity(0.14 * opacity),
     );
-    // small inner core sheen
-    canvas.drawCircle(
-      Offset(r.center.dx, r.top + r.height * 0.30),
-      r.width * 0.12,
-      Paint()..color = Colors.white.withOpacity(0.18 * opacity),
-    );
-    // bright neon rim
+    // prada-gold rim
     canvas.drawRRect(
       rr,
       Paint()
-        ..color = Color.lerp(color, Colors.white, 0.35)!.withOpacity(0.9 * opacity)
+        ..color = Palette.goldLt.withOpacity(0.55 * opacity)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = rect.width * 0.04,
+        ..strokeWidth = rect.width * 0.035,
     );
   }
 }

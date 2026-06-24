@@ -66,7 +66,10 @@ def render(name, events, ch_progs, bpm, gain=0.9, room=0.5, level=0.4, norm=-14,
     target = min(-2.0, norm + 8.0)
     gain_db = target - peak_db(raw)
     pre = "" if loop else "silenceremove=start_periods=1:start_threshold=-50dB,"
-    sh(["ffmpeg", "-y", "-i", raw, "-af", f"{pre}volume={gain_db:.2f}dB",
+    # Clean tail fade on SFX (length-independent: reverse, fade-in 50ms, reverse)
+    # → crisp tails, no harsh cutoff. Loops keep their seam intact (no fade).
+    post = "" if loop else ",areverse,afade=t=in:d=0.05,areverse"
+    sh(["ffmpeg", "-y", "-i", raw, "-af", f"{pre}volume={gain_db:.2f}dB{post}",
         "-ac", "1", "-ar", str(SR), "-c:a", "pcm_s16le", out])
     os.remove(mid); os.remove(raw)
 

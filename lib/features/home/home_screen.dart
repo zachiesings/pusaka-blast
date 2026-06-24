@@ -14,6 +14,7 @@ import '../../widgets/home_decor.dart';
 import '../../widgets/roaming_mascot.dart';
 import '../game/widgets/game_backdrop.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/blast_mascot.dart';
 import '../../widgets/soft_card.dart';
 import '../../widgets/effects.dart';
 import '../game/game_screen.dart';
@@ -375,7 +376,7 @@ class _HeroMascotState extends State<_HeroMascot> with SingleTickerProviderState
       builder: (_, __) {
         // wave/cheer in the last quarter of every cycle; idle otherwise
         final cheering = _c.value > 0.75;
-        return MascotView(
+        return BlastMascot(
           size: 150,
           mood: cheering ? MascotMood.cheer : MascotMood.idle,
         );

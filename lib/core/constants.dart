@@ -90,3 +90,29 @@ class Palette {
     Color(0xFFB5632A), // amber sogan
   ];
 }
+
+/// Single source of truth for typography — Cinzel (regal keraton serif) for
+/// score/combo/headlines, Plus Jakarta Sans for body. Deliberately distinct from
+/// Pusaka Tiles (which uses the geometric Outfit sans). Use `.copyWith(color:)`.
+class Typo {
+  Typo._();
+  static const String display = 'Cinzel';
+  static const String body = 'Jakarta';
+
+  static const TextStyle score =
+      TextStyle(fontFamily: display, fontWeight: FontWeight.w700, fontSize: 50, height: 1.0, letterSpacing: 0.5);
+  static const TextStyle combo =
+      TextStyle(fontFamily: display, fontWeight: FontWeight.w700, fontSize: 22, letterSpacing: 1.0);
+  static const TextStyle banner =
+      TextStyle(fontFamily: display, fontWeight: FontWeight.w800, fontSize: 40, letterSpacing: 1.5, height: 1.0);
+  static const TextStyle h1 =
+      TextStyle(fontFamily: display, fontWeight: FontWeight.w700, fontSize: 24, letterSpacing: 1.0);
+  static const TextStyle title =
+      TextStyle(fontFamily: body, fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.2);
+  static const TextStyle label =
+      TextStyle(fontFamily: body, fontWeight: FontWeight.w600, fontSize: 12);
+  static const TextStyle small =
+      TextStyle(fontFamily: body, fontWeight: FontWeight.w600, fontSize: 10.5, letterSpacing: 0.4);
+  static const TextStyle chip =
+      TextStyle(fontFamily: display, fontWeight: FontWeight.w700, fontSize: 14);
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../../widgets/batik.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/blast_mascot.dart';
 import '../../widgets/soft_card.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -17,7 +18,7 @@ class AboutScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             children: [
               const SizedBox(height: 8),
-              const Center(child: MascotView(size: 110, mood: MascotMood.happy)),
+              const Center(child: BlastMascot(size: 110, mood: MascotMood.happy)),
               const SizedBox(height: 8),
               const Center(child: GoldTitle('PUSAKA BLAST', size: 28, letterSpacing: 1.5)),
               const SizedBox(height: 6),

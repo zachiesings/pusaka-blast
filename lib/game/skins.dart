@@ -92,6 +92,36 @@ class SkinCatalog {
         Color(0xFFC0492E), Color(0xFFF2B14A), Color(0xFF8A2E5A),
       ],
     ),
+    Skin(
+      id: 'sekarjagad',
+      name: 'Sekar Jagad',
+      desc: 'Peta bunga sedunia — warna-warni keraton.',
+      cost: 800,
+      colors: [
+        Color(0xFF9A4A36), Color(0xFF2E6E6E), Color(0xFFC2912F), Color(0xFF5C7A3A),
+        Color(0xFF6E3B5C), Color(0xFF1F4E5F), Color(0xFFCD6A3D),
+      ],
+    ),
+    Skin(
+      id: 'parang',
+      name: 'Parang Barong',
+      desc: 'Lereng gagah — merah, sogan, & emas.',
+      cost: 950,
+      colors: [
+        Color(0xFF8E2E2E), Color(0xFF7A3B2E), Color(0xFFC8923A), Color(0xFF5C2A2A),
+        Color(0xFFA8522E), Color(0xFFE0B84E), Color(0xFF3E211A),
+      ],
+    ),
+    Skin(
+      id: 'wahyutumurun',
+      name: 'Wahyu Tumurun',
+      desc: 'Berkah turun — nila kerajaan & prada.',
+      cost: 1200,
+      colors: [
+        Color(0xFF243A7A), Color(0xFF3B57A6), Color(0xFFD4AF37), Color(0xFF1A2A5C),
+        Color(0xFF5C6ED0), Color(0xFFF2C75B), Color(0xFF2E2268),
+      ],
+    ),
   ];
 
   static Skin byId(String id) =>

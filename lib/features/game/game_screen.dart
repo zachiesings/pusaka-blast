@@ -11,6 +11,7 @@ import '../../game/game_mode.dart';
 import '../../game/wave.dart';
 import '../../game/models/cell.dart';
 import '../../widgets/mascot.dart';
+import '../../widgets/blast_mascot.dart';
 import '../../widgets/effects.dart';
 import 'widgets/board_view.dart';
 import 'widgets/game_backdrop.dart';
@@ -298,19 +299,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 ),
               ),
               if (gc.berkahActive && !gc.isGameOver)
-                IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.center,
-                        radius: 1.0,
-                        colors: [Colors.transparent, Palette.gold.withOpacity(0.16)],
-                        stops: const [0.58, 1.0],
-                      ),
-                    ),
-                    child: const SizedBox.expand(),
-                  ),
-                ),
+                Positioned.fill(child: _BerkahCinematic(clears: gc.berkahClears)),
               if (gc.berkahActive && !gc.isGameOver)
                 IgnorePointer(
                   child: Align(
@@ -600,7 +589,7 @@ class _Hud extends StatelessWidget {
                 onPressed: () => Navigator.of(context).maybePop(),
                 icon: const Icon(Icons.arrow_back_ios_new, color: Palette.cream),
               ),
-              MascotView(size: 50, mood: berkah || combo > 1 ? MascotMood.cheer : MascotMood.idle),
+              BlastMascot(size: 50, mood: berkah || combo > 1 ? MascotMood.cheer : MascotMood.idle),
               const Spacer(),
               if (timeLeft != null) ...[
                 _Pill(
@@ -943,7 +932,7 @@ class _GameOverOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            MascotView(size: 110, mood: isNewBest ? MascotMood.cheer : MascotMood.sad),
+            BlastMascot(size: 110, mood: isNewBest ? MascotMood.cheer : MascotMood.sad),
             const SizedBox(height: 4),
             Text(isNewBest ? 'Rekor Baru! 🎉' : 'Permainan Selesai',
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Palette.cream)),
@@ -1128,7 +1117,7 @@ class _WaveCompleteOverlayState extends State<_WaveCompleteOverlay>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              MascotView(size: 100, mood: MascotMood.cheer),
+              BlastMascot(size: 100, mood: MascotMood.cheer),
               const SizedBox(height: 4),
               Text(isFinale ? 'NUSANTARA TUNTAS! 🎉' : 'Pusaka Diraih!',
                   textAlign: TextAlign.center,
@@ -1266,7 +1255,7 @@ class _WaveFailedOverlay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            MascotView(size: 100, mood: MascotMood.sad),
+            BlastMascot(size: 100, mood: MascotMood.sad),
             const SizedBox(height: 4),
             Text(reason,
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Palette.cream)),
@@ -1334,4 +1323,87 @@ class _WaveFailedOverlay extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─────────────────────── Berkah Keraton cinematic ───────────────────────
+
+/// Full-screen Berkah payoff: a pulsing prada-gold vignette + a rising gold
+/// particle storm. (The mascot reacts in the HUD; the gong + "BERKAH KERATON!"
+/// banner fire from the engine.) Code-driven; own repeating ticker, disposed.
+class _BerkahCinematic extends StatefulWidget {
+  final int clears;
+  const _BerkahCinematic({required this.clears});
+  @override
+  State<_BerkahCinematic> createState() => _BerkahCinematicState();
+}
+
+class _BerkahCinematicState extends State<_BerkahCinematic>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) {
+          final t = _c.value;
+          final pulse = 0.5 + 0.5 * math.sin(t * 2 * math.pi);
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 1.05,
+                      colors: [Colors.transparent, Palette.gold.withOpacity(0.12 + 0.10 * pulse)],
+                      stops: const [0.5, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(child: CustomPaint(painter: _BerkahStormPainter(t))),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BerkahStormPainter extends CustomPainter {
+  final double t;
+  _BerkahStormPainter(this.t);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    for (var i = 0; i < 54; i++) {
+      final seed = i * 0.6180339887;
+      final x = w * ((seed * 9.17) % 1.0);
+      final speed = 60 + (i % 6) * 30.0;
+      final y = h - (((t * speed * 4) + (i * 37.0)) % (h + 60));
+      final r = 1.6 + (i % 3) * 1.3;
+      final col = (i % 3 == 0) ? Palette.goldLt : (i % 3 == 1) ? Palette.gold : Palette.cream;
+      final tw = 0.4 + 0.6 * (0.5 + 0.5 * math.sin(t * 6.28 + i));
+      canvas.drawCircle(
+        Offset(x, y),
+        r,
+        Paint()
+          ..color = col.withOpacity(0.55 * tw)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BerkahStormPainter old) => old.t != t;
 }

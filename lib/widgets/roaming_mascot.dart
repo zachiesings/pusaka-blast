@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'mascot.dart';
+import 'blast_mascot.dart';
 
 /// "Si Batik" out for a stroll — the little mascot walks back and forth across
 /// the bottom of a scene, bobbing as it goes, flipping to face its direction,
@@ -69,7 +70,7 @@ class _RoamingMascotState extends State<RoamingMascot> {
               child: Transform(
                 alignment: Alignment.center,
                 transform: Matrix4.diagonal3Values(dir, 1.0, 1.0),
-                child: MascotView(size: widget.size, mood: mood),
+                child: BlastMascot(size: widget.size, mood: mood),
               ),
             ),
           ],
