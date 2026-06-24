@@ -91,6 +91,10 @@ Future<void> _captureGame(
   await _shoot(tester, binding, _wrapGame(app, gc), name);
   await tester.pumpWidget(const SizedBox.shrink()); // tear down before disposing
   gc.dispose();
+  // audioplayers registers a FramePositionUpdater frame callback that survives
+  // teardown ("animation still running"); dispose audio + pump to flush it.
+  app.audio.dispose();
+  await tester.pump(const Duration(milliseconds: 100));
 }
 
 void main() {
@@ -130,5 +134,7 @@ void main() {
     );
     await _shoot(tester, binding, w, 'blast_03_adventure');
     await tester.pumpWidget(const SizedBox.shrink());
+    app.audio.dispose();
+    await tester.pump(const Duration(milliseconds: 100));
   }, timeout: _perTest);
 }
