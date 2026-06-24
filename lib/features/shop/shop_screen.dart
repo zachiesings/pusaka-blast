@@ -12,6 +12,7 @@ class ShopScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    app.ads.preloadRewarded(); // so the "Koin Gratis" ad button can appear (idempotent)
     return Scaffold(
       appBar: AppBar(
         title: const Text('Toko Batik'),
@@ -31,35 +32,42 @@ class ShopScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                child: GestureDetector(
-                  onTap: () async {
-                    final ok = await app.rewardedCoins();
-                    if (ok && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('+60 koin! 🎉')),
-                      );
-                    }
-                  },
-                  child: SoftCard(
-                    glow: Palette.gold,
-                    child: Row(
-                      children: const [
-                        Icon(Icons.smart_display_rounded, color: Palette.gold, size: 26),
-                        SizedBox(width: 14),
-                        Expanded(
-                          child: Text('Koin Gratis',
-                              style: TextStyle(
-                                  color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+              // "Koin Gratis" (rewarded) shows ONLY when a real ad is loaded (2.1a).
+              ValueListenableBuilder<bool>(
+                valueListenable: app.ads.rewardedReady,
+                builder: (context, ready, _) {
+                  if (!ready) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                    child: GestureDetector(
+                      onTap: () async {
+                        final ok = await app.rewardedCoins();
+                        if (ok && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('+60 koin! 🎉')),
+                          );
+                        }
+                      },
+                      child: SoftCard(
+                        glow: Palette.gold,
+                        child: Row(
+                          children: const [
+                            Icon(Icons.smart_display_rounded, color: Palette.gold, size: 26),
+                            SizedBox(width: 14),
+                            Expanded(
+                              child: Text('Koin Gratis',
+                                  style: TextStyle(
+                                      color: Palette.cream, fontSize: 16, fontWeight: FontWeight.w800)),
+                            ),
+                            Icon(Icons.add, color: Palette.gold, size: 16),
+                            Text('60 ', style: TextStyle(color: Palette.gold, fontWeight: FontWeight.w900)),
+                            Icon(Icons.monetization_on, color: Palette.gold, size: 16),
+                          ],
                         ),
-                        Icon(Icons.add, color: Palette.gold, size: 16),
-                        Text('60 ', style: TextStyle(color: Palette.gold, fontWeight: FontWeight.w900)),
-                        Icon(Icons.monetization_on, color: Palette.gold, size: 16),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               Expanded(
                 child: ListView.separated(

@@ -173,21 +173,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _revive(BuildContext context, GameController gc, AppState app) async {
-    if (!app.ads.rewardedReady) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Memuat iklan…'), duration: Duration(seconds: 1)),
-      );
-    }
+    // The button is only visible when an ad is loaded, so this presents a REAL
+    // ad and revives ONLY when the reward is earned. No ad → no grant.
     final ok = await app.ads.showRewarded(RewardKind.revive);
     if (!context.mounted) return;
-    if (ok) {
-      gc.revive(); // ad watched OR no-fill fallback — always continues
-    } else {
-      // The user closed the ad before finishing — not a dead button.
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iklan ditutup lebih awal — coba lagi.')),
-      );
-    }
+    if (ok) gc.revive();
   }
 
   @override
@@ -264,24 +254,27 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     bombs: app.bombs,
                     hammerArmed: gc.hammerArmed,
                     bombArmed: gc.bombArmed,
+                    // When out of a power-up, only offer the rewarded ad if one is
+                    // actually loaded — otherwise the tap does nothing (2.1a: never
+                    // imply an ad that won't show).
                     onHammer: () {
                       if (app.hammers > 0) {
                         gc.armHammer();
-                      } else {
+                      } else if (app.ads.rewardedReady.value) {
                         app.rewardedPowerup('hammer');
                       }
                     },
                     onShuffle: () {
                       if (app.shuffles > 0) {
                         gc.useShuffle();
-                      } else {
+                      } else if (app.ads.rewardedReady.value) {
                         app.rewardedPowerup('shuffle');
                       }
                     },
                     onBomb: () {
                       if (app.bombs > 0) {
                         gc.armBomb();
-                      } else {
+                      } else if (app.ads.rewardedReady.value) {
                         app.rewardedPowerup('bomb');
                       }
                     },
@@ -410,6 +403,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     gc.newGame();
                   },
                   onMap: () => Navigator.of(context).maybePop(),
+                  adReady: app.ads.rewardedReady,
                 )
               else if (gc.isGameOver)
                 _GameOverOverlay(
@@ -424,6 +418,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     gc.newGame();
                   },
                   onHome: () => Navigator.of(context).maybePop(),
+                  adReady: app.ads.rewardedReady,
                 ),
               if (_showHowTo)
                 _HowToOverlay(onClose: () {
@@ -913,6 +908,7 @@ class _GameOverOverlay extends StatelessWidget {
   final int score, best, maxCombo, berkahCount;
   final bool isNewBest;
   final VoidCallback onRevive, onRestart, onHome;
+  final ValueListenable<bool> adReady; // gates the watch-ad button (2.1a)
   const _GameOverOverlay({
     required this.score,
     required this.best,
@@ -922,6 +918,7 @@ class _GameOverOverlay extends StatelessWidget {
     required this.onRevive,
     required this.onRestart,
     required this.onHome,
+    required this.adReady,
   });
 
   @override
@@ -963,15 +960,27 @@ class _GameOverOverlay extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onRevive,
-                icon: const Icon(Icons.play_circle_fill),
-                label: const Text('Lanjut — Tonton Iklan'),
-              ),
+            // Watch-ad button shows ONLY when a real rewarded ad is loaded (2.1a);
+            // otherwise the player just uses Ulangi / Beranda below.
+            ValueListenableBuilder<bool>(
+              valueListenable: adReady,
+              builder: (context, ready, _) {
+                if (!ready) return const SizedBox.shrink();
+                return Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: onRevive,
+                        icon: const Icon(Icons.play_circle_fill),
+                        label: const Text('Lanjut — Tonton Iklan'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 10),
             Row(children: [
               Expanded(
                 child: OutlinedButton(
@@ -1224,11 +1233,13 @@ class _WaveCompleteOverlayState extends State<_WaveCompleteOverlay>
 class _WaveFailedOverlay extends StatelessWidget {
   final GameController gc;
   final VoidCallback onRevive, onReplay, onMap;
+  final ValueListenable<bool> adReady; // gates the watch-ad button (2.1a)
   const _WaveFailedOverlay({
     required this.gc,
     required this.onRevive,
     required this.onReplay,
     required this.onMap,
+    required this.adReady,
   });
 
   @override
@@ -1277,15 +1288,26 @@ class _WaveFailedOverlay extends StatelessWidget {
               ]),
             ),
             const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onRevive,
-                icon: const Icon(Icons.play_circle_fill),
-                label: const Text('Lanjut — Tonton Iklan'),
-              ),
+            // Watch-ad button shows ONLY when a real rewarded ad is loaded (2.1a).
+            ValueListenableBuilder<bool>(
+              valueListenable: adReady,
+              builder: (context, ready, _) {
+                if (!ready) return const SizedBox.shrink();
+                return Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: onRevive,
+                        icon: const Icon(Icons.play_circle_fill),
+                        label: const Text('Lanjut — Tonton Iklan'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                );
+              },
             ),
-            const SizedBox(height: 10),
             Row(children: [
               Expanded(
                 child: OutlinedButton(
