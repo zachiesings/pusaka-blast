@@ -75,6 +75,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
     if (_app == null) {
       _app = context.read<AppState>();
       _app!.startGameMusic(); // switch to the driving in-game track
+      _app!.ads.preloadRewarded(); // warm up the revive ad so the button is instant
     }
   }
 
@@ -172,13 +173,19 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _revive(BuildContext context, GameController gc, AppState app) async {
+    if (!app.ads.rewardedReady) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Memuat iklan…'), duration: Duration(seconds: 1)),
+      );
+    }
     final ok = await app.ads.showRewarded(RewardKind.revive);
     if (!context.mounted) return;
     if (ok) {
-      gc.revive();
+      gc.revive(); // ad watched OR no-fill fallback — always continues
     } else {
+      // The user closed the ad before finishing — not a dead button.
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Iklan belum siap, coba lagi sebentar.')),
+        const SnackBar(content: Text('Iklan ditutup lebih awal — coba lagi.')),
       );
     }
   }
