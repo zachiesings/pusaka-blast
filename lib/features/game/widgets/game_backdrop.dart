@@ -56,7 +56,7 @@ class _BackdropPainter extends CustomPainter {
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Palette.bg0, Palette.bg1, Color(0xFF0A0A16)],
+          colors: [Palette.bg0, Palette.bg1, Color(0xFF120B06)],
           stops: [0.0, 0.55, 1.0],
         ).createShader(Offset.zero & size),
     );

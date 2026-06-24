@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'constants.dart';
 import 'motion.dart';
 
-/// Premium "Neon Grid" theme — Plus Jakarta Sans + dark cyber-arcade tokens.
+/// Premium "Pusaka Keraton" theme — Plus Jakarta Sans + warm batik/sogan tokens.
 ThemeData buildTheme() {
   const font = 'Jakarta';
   final base = ThemeData.dark(useMaterial3: true);

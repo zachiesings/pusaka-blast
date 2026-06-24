@@ -49,43 +49,44 @@ class K {
 class Palette {
   Palette._();
 
-  // === "NEON GRID" — dark cyber-arcade identity (distinct from Tiles' batik) ===
-  // Same field NAMES kept (gold = hero accent, cream = text, etc.) so every
-  // screen recolors automatically; only the VALUES changed to neon.
-  static const Color bg0      = Color(0xFF07070D); // deepest void black
-  static const Color bg1      = Color(0xFF0C0D18); // night blue-black
-  static const Color panel    = Color(0xFF13162A); // glassy dark panel
-  static const Color panelHi  = Color(0xFF1E2440); // raised glass / hover
-  static const Color gridCell = Color(0xFF10131F); // empty board cell
-  static const Color gridLine = Color(0xFF2B3360); // faint neon grid line
+  // === "PUSAKA KERATON" — warm batik/keraton identity (distinct from Tiles'
+  // cool indigo "Panggung Malam"). Field NAMES unchanged (gold = hero accent,
+  // cream = text, etc.) so every screen + every FX recolors automatically; only
+  // the VALUES changed — neon → sogan brown, prada gold, indigo & maroon batik.
+  static const Color bg0      = Color(0xFF160E07); // deepest sogan-black
+  static const Color bg1      = Color(0xFF241710); // dark roast night
+  static const Color panel    = Color(0xFF2E2016); // glassy warm panel
+  static const Color panelHi  = Color(0xFF3E2C1D); // raised wood / hover
+  static const Color gridCell = Color(0xFF241A12); // empty board cell
+  static const Color gridLine = Color(0xFF4A3520); // faint sogan grid line
 
-  static const Color gold     = Color(0xFF1FE3FF); // electric cyan (hero accent)
-  static const Color goldLt   = Color(0xFF8BF4FF); // light cyan glow
-  static const Color goldSoft = Color(0xFF16A6C4); // dim cyan
-  static const Color cream    = Color(0xFFEAF2FF); // cool white text
-  static const Color ink      = Color(0xFF06080F); // near-black (on bright btns)
+  static const Color gold     = Color(0xFFE8B24C); // keraton prada gold (hero accent)
+  static const Color goldLt   = Color(0xFFF8D98A); // bright gold glow
+  static const Color goldSoft = Color(0xFFB5832E); // sogan gold (dim)
+  static const Color cream    = Color(0xFFF4E8D2); // warm ivory text
+  static const Color ink      = Color(0xFF160E07); // near-black (on bright btns)
 
-  // neon accents
-  static const Color coral    = Color(0xFFFF3DAE); // neon magenta
-  static const Color maroon   = Color(0xFFFF2E63); // hot pink-red
-  static const Color jade     = Color(0xFF9DFF3D); // neon lime
+  // batik accents
+  static const Color coral    = Color(0xFFCD6A3D); // terracotta / pesisir
+  static const Color maroon   = Color(0xFF8E3B2E); // deep batik maroon
+  static const Color jade     = Color(0xFF5E7A3E); // batik daun olive-green
 
   static const LinearGradient brand = LinearGradient(
-    colors: [goldLt, Color(0xFFB14DFF), coral], // cyan → violet → magenta sweep
+    colors: [goldLt, Color(0xFFB5832E), maroon], // gold → sogan → maroon sweep
     begin: Alignment.topLeft, end: Alignment.bottomRight,
   );
 
   static List<BoxShadow> glow(Color c, {double blur = 26, double y = 10, double a = 0.5}) =>
       [BoxShadow(color: c.withOpacity(a), blurRadius: blur, offset: Offset(0, y))];
 
-  // Block colors — vivid neon set (cyber arcade).
+  // Block colors — traditional batik tones (sogan, indigo wedelan, prada, daun).
   static const List<Color> blockColors = <Color>[
-    Color(0xFF1FE3FF), // cyan
-    Color(0xFFFF3DAE), // magenta
-    Color(0xFF9DFF3D), // lime
-    Color(0xFFB14DFF), // violet
-    Color(0xFFFFD23D), // electric yellow
-    Color(0xFFFF6B35), // neon orange
-    Color(0xFF3D8BFF), // electric blue
+    Color(0xFF9A4A36), // sogan terracotta
+    Color(0xFF1F4E5F), // indigo wedelan
+    Color(0xFFC2912F), // prada gold
+    Color(0xFF4A6B3A), // daun olive
+    Color(0xFF6E3B5C), // plum keraton
+    Color(0xFF2E5E6E), // teal pesisir
+    Color(0xFFB5632A), // amber sogan
   ];
 }

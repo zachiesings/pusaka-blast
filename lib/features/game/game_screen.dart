@@ -246,9 +246,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     child: AnimatedBuilder(
                       animation: _fx,
                       builder: (_, child) {
-                        final amp = _fxLines >= 2 ? (1 - _fx.value) * (_wasSpecial ? 12 : 5) : 0.0;
+                        // Berkah Keraton shakes hardest, then Pukulan Gamelan, then normal clears.
+                        final amp = _fxLines >= 2
+                            ? (1 - _fx.value) * (_wasBerkah ? 22 : _wasSpecial ? 12 : 5)
+                            : 0.0;
                         final dx = math.sin(_fx.value * math.pi * 8) * amp;
-                        return Transform.translate(offset: Offset(dx, 0), child: child);
+                        final dy = _wasBerkah ? math.cos(_fx.value * math.pi * 7) * amp * 0.5 : 0.0;
+                        return Transform.translate(offset: Offset(dx, dy), child: child);
                       },
                       child: _buildBoard(gc),
                     ),

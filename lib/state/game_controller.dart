@@ -270,7 +270,12 @@ class GameController extends ChangeNotifier {
       } else {
         app.playSfx(combo > 1 ? Sfx.combo : Sfx.clear);
       }
-      _haptic(HapticFeedbackLevel.medium);
+      // Big moments (Berkah Keraton / Papan Bersih / Pukulan Gamelan) thump harder.
+      final bigMoment = berkahJustTriggered ||
+          result.boardCleared ||
+          combo >= 3 ||
+          result.linesCleared >= 3;
+      _haptic(bigMoment ? HapticFeedbackLevel.heavy : HapticFeedbackLevel.medium);
     } else {
       combo = 0;
       app.playSfx(Sfx.place);
@@ -334,8 +339,10 @@ class GameController extends ChangeNotifier {
         HapticFeedback.selectionClick();
       case HapticFeedbackLevel.medium:
         HapticFeedback.lightImpact();
+      case HapticFeedbackLevel.heavy:
+        HapticFeedback.heavyImpact();
     }
   }
 }
 
-enum HapticFeedbackLevel { light, medium }
+enum HapticFeedbackLevel { light, medium, heavy }
