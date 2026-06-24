@@ -308,4 +308,26 @@ platform :ios do
     UI.success("Done — internal testers are notified now; external groups queue for Beta App Review.")
   end
 
+  desc "Read-only: list internal beta groups + their testers (emails)"
+  lane :testers do
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER"], key: ENV["ASC_KEY"],
+    )
+    app = Spaceship::ConnectAPI::App.find(ENV["BUNDLE_ID"])
+    app.get_beta_groups.each do |g|
+      internal = (g.is_internal_group rescue nil)
+      UI.success("GROUP '#{g.name}' internal=#{internal} id=#{g.id}")
+      begin
+        ts = Spaceship::ConnectAPI.get_beta_testers(filter: { betaGroups: g.id }, limit: 100).to_models
+        if ts.empty?
+          UI.important("  (no testers)")
+        else
+          ts.each { |t| UI.important("  tester: #{(t.email rescue '?')}  #{(t.first_name rescue '')} #{(t.last_name rescue '')}") }
+        end
+      rescue => e
+        UI.error("  could not list testers: #{e.message}")
+      end
+    end
+  end
+
 end

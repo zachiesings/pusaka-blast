@@ -17,5 +17,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Query ASC state (fastlane)
+      - name: List internal beta groups + testers (who gets notified)
+        run: fastlane testers
+      - name: Distribute latest build to beta groups
         run: fastlane distribute
